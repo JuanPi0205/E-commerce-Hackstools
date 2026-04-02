@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@astrojs/react": "^4.4.2",
-    "@astrojs/svelte": "^7.2.1",
+    "@astrojs/svelte": "^7.2.5",
     "@astrojs/vercel": "^8.2.9",
     "@nanostores/persistent": "^1.2.0",
     "@shopify/hydrogen-react": "^2025.7.0",

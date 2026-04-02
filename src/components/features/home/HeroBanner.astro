@@ -1,0 +1,43 @@
+---
+// src/components/features/home/HeroBanner.astro
+---
+
+<section class="overflow-hidden bg-[#212121]">
+  <div class="container mx-auto max-w-7xl px-4">
+    <div
+      class="flex min-h-[600px] flex-col items-center justify-between py-12 md:flex-row md:py-0"
+    >
+      <!-- Text Content -->
+      <div class="z-10 w-full text-left md:w-1/2">
+        <h2 class="mb-2 text-xl font-semibold text-[#888] md:text-2xl">
+          Tactical SDR
+        </h2>
+        <h1
+          class="mb-4 text-5xl font-light tracking-tight text-white md:text-7xl"
+        >
+          HackRF <span class="font-bold">One</span>
+        </h1>
+        <p class="mb-8 max-w-md text-lg text-[#888]">
+          Software Defined Radio peripheral capable of transmission or reception
+          of radio signals from 1 MHz to 6 GHz.
+        </p>
+        <a
+          href="/shop"
+          class="inline-block rounded-md border border-white px-10 py-3 font-medium text-white transition-colors hover:bg-white hover:text-black"
+          >Shop Now</a
+        >
+      </div>
+
+      <!-- Image Content -->
+      <div
+        class="relative mt-12 flex w-full items-center justify-end md:mt-0 md:w-1/2"
+      >
+        <img
+          src="/images/hero_hackrf.png"
+          alt="HackRF One"
+          class="w-full max-w-[500px] object-contain drop-shadow-2xl"
+        />
+      </div>
+    </div>
+  </div>
+</section>

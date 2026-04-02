@@ -1,0 +1,140 @@
+---
+// src/components/common/Header.astro
+---
+
+<header class="border-b border-gray-100 bg-white py-4">
+  <div
+    class="container mx-auto flex max-w-7xl items-center justify-between px-4"
+  >
+    <!-- Logo & Search -->
+    <div class="flex flex-1 items-center gap-8">
+      <a
+        href="/"
+        class="text-2xl font-bold tracking-tight text-black no-underline"
+        >HackTools</a
+      >
+
+      <div
+        class="hidden max-w-sm flex-1 items-center rounded-lg bg-[#F5F5F5] px-4 py-2 md:flex"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#9CA3AF"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="mr-2"
+          ><circle cx="11" cy="11" r="8"></circle><line
+            x1="21"
+            y1="21"
+            x2="16.65"
+            y2="16.65"></line></svg
+        >
+        <input
+          type="text"
+          placeholder="Search"
+          class="w-full border-none bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none"
+        />
+      </div>
+    </div>
+
+    <!-- Navigation List -->
+    <nav class="hidden lg:block">
+      <ul class="m-0 flex list-none items-center gap-8 p-0 text-sm font-medium">
+        <li><a href="/" class="text-black">Home</a></li>
+        <li>
+          <a
+            href="/catalog"
+            class="text-gray-400 transition-colors hover:text-black">Catalog</a
+          >
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Icons -->
+    <div class="ml-8 flex items-center gap-6">
+      <a
+        href="/wishlist"
+        aria-label="Wishlist"
+        class="relative text-black transition-opacity hover:opacity-70"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          ><path
+            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+          ></path></svg
+        >
+        <span
+          id="wishlist-badge"
+          style="display:none"
+          class="absolute -top-2 -right-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-[4px] text-[10px] leading-none font-bold text-white"
+        ></span>
+      </a>
+      <a
+        href="/cart"
+        aria-label="Cart"
+        class="relative text-black transition-opacity hover:opacity-70"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          ><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"
+          ></circle><path
+            d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"
+          ></path></svg
+        >
+        <span
+          id="cart-badge"
+          style="display:none"
+          class="absolute -top-2 -right-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-black px-[4px] text-[10px] leading-none font-bold text-white"
+        ></span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<script>
+  import { getCartCount } from "../../utils/cart";
+  import { getWishlistCount } from "../../utils/wishlist";
+
+  function updateCartBadge() {
+    const badge = document.getElementById("cart-badge");
+    if (!badge) return;
+    const count = getCartCount();
+    badge.textContent = count > 99 ? "99+" : String(count);
+    badge.style.display = count > 0 ? "flex" : "none";
+  }
+
+  function updateWishlistBadge() {
+    const badge = document.getElementById("wishlist-badge");
+    if (!badge) return;
+    const count = getWishlistCount();
+    badge.textContent = count > 99 ? "99+" : String(count);
+    badge.style.display = count > 0 ? "flex" : "none";
+  }
+
+  updateCartBadge();
+  updateWishlistBadge();
+
+  window.addEventListener("cart:updated", updateCartBadge);
+  window.addEventListener("wishlist:updated", updateWishlistBadge);
+</script>

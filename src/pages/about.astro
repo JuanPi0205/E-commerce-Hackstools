@@ -1,0 +1,386 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="About Us | HackTools" description="Somos HackTools, tienda de accesorios de hacking ético en Medellín, Colombia.">
+
+<div class="about-page">
+
+  <!-- HERO — split layout so the square image shows in full -->
+  <section class="about-hero">
+    <div class="hero-left">
+      <p class="about-tag">📍 Medellín, Colombia</p>
+      <h1 class="about-h1">Hacking<br/>de nivel <span class="hero-accent">mundial.</span></h1>
+      <p class="hero-sub">Accesorios para hacking ético traídos desde Medellín al resto de Colombia y Latinoamérica.</p>
+    </div>
+    <div class="hero-right">
+      <img src="/images/about_medellin.png" alt="Medellín de noche" class="hero-img" />
+    </div>
+  </section>
+
+
+  <!-- STATS -->
+  <section class="about-stats">
+    <div class="about-stats-inner">
+      <div class="about-stat">
+        <span class="stat-val">500+</span>
+        <span class="stat-lbl">Productos</span>
+      </div>
+      <div class="about-stat">
+        <span class="stat-val">3+</span>
+        <span class="stat-lbl">Años activos</span>
+      </div>
+      <div class="about-stat">
+        <span class="stat-val">100%</span>
+        <span class="stat-lbl">Educativo</span>
+      </div>
+      <div class="about-stat">
+        <span class="stat-val">COL</span>
+        <span class="stat-lbl">Medellín</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- STORY -->
+  <section class="about-story">
+    <div class="about-container">
+      <div class="story-grid">
+        <div class="story-text">
+          <p class="section-tag">Nuestra historia</p>
+          <h2 class="about-h2">Nacimos desde<br/>la curiosidad.</h2>
+          <p class="about-body">
+            HackTools nació en Medellín — la ciudad de la innovación — de la mano de investigadores y entusiastas de la ciberseguridad que querían democratizar el acceso a herramientas de hacking de calidad en Colombia y Latinoamérica.
+          </p>
+          <p class="about-body" style="margin-top: 1rem;">
+            Traemos SDRs, implantes de red, clonadores RFID, payloads USB y mucho más — todo con un propósito: <strong>educación e investigación responsable</strong>.
+          </p>
+
+        </div>
+        <div class="story-visual">
+          <div class="card-back">
+            <img src="/images/hero_hackrf.png" alt="HackRF One" />
+          </div>
+          <div class="card-front">
+            <img src="/images/promo_flipper.png" alt="Flipper Zero" />
+          </div>
+          <div class="card-badge">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+</div>
+
+</BaseLayout>
+
+<style>
+  /* ── Reset & base ──────────────────────────── */
+  .about-page * { box-sizing: border-box; margin: 0; padding: 0; }
+  .about-page { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; }
+  .about-container { max-width: 1260px; margin: 0 auto; padding: 0 2rem; }
+  .center { text-align: center; }
+
+  /* ── Hero (split) ──────────────────────────── */
+  .about-hero {
+    display: flex;
+    min-height: 92vh;
+    background: #000;
+  }
+  .hero-left {
+    flex: 0 0 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 5rem 5rem 5rem 5rem;
+  }
+  .hero-right {
+    flex: 0 0 50%;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+  .hero-accent { color: #4ade80; }
+  .hero-sub {
+    margin-top: 1.5rem;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.5);
+    max-width: 420px;
+  }
+
+  .about-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #4ade80;
+    margin-bottom: 1.25rem;
+  }
+  .about-h1 {
+    font-size: clamp(3rem, 7vw, 6.5rem);
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  /* ── Stats ─────────────────────────────────── */
+  .about-stats { background: #0a0a0a; }
+  .about-stats-inner {
+    max-width: 1260px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .about-stat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3rem 1rem;
+    border-right: 1px solid rgba(255,255,255,0.07);
+  }
+  .about-stat:last-child { border-right: none; }
+  .stat-val {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+  .stat-lbl {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+  }
+
+  /* ── Story ─────────────────────────────────── */
+  .about-story { padding: 7rem 0; background: #fff; }
+  .story-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: center;
+  }
+  .section-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #16a34a;
+    margin-bottom: 1.25rem;
+  }
+  .section-tag.green { color: #4ade80; }
+  .about-h2 {
+    font-size: clamp(2rem, 4vw, 3.25rem);
+    font-weight: 800;
+    color: #111;
+    line-height: 1.1;
+    margin-bottom: 1.75rem;
+    letter-spacing: -0.02em;
+  }
+  .about-h2.white { color: #fff; }
+  .about-body {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: #555;
+  }
+  .about-body.muted { color: rgba(255,255,255,0.45); }
+  .about-body strong { color: #111; font-weight: 600; }
+
+  /* Buttons */
+  .about-btn-primary {
+    display: inline-block;
+    margin-top: 2rem;
+    background: #111;
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.875rem 2rem;
+    border-radius: 0.75rem;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .about-btn-primary:hover { background: #333; }
+  .about-btn-outline {
+    display: inline-block;
+    margin-top: 2rem;
+    background: transparent;
+    color: #111;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.875rem 2rem;
+    border-radius: 0.75rem;
+    border: 1.5px solid #d1d5db;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .about-btn-outline:hover { background: #f9fafb; }
+
+  /* Product card stack */
+  .story-visual {
+    position: relative;
+    height: 380px;
+  }
+  .card-back {
+    position: absolute;
+    top: 0; right: 1.5rem;
+    width: 240px; height: 300px;
+    background: #f0f0f0;
+    border-radius: 1.25rem;
+    transform: rotate(3deg);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .card-back img { width: 160px; object-fit: contain; mix-blend-mode: multiply; }
+  .card-front {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 240px; height: 300px;
+    background: #1a1a1a;
+    border-radius: 1.25rem;
+    transform: rotate(-2deg);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .card-front img { width: 160px; object-fit: contain; }
+  .card-badge {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px; height: 60px;
+    background: #22c55e;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 24px rgba(34,197,94,0.4);
+    z-index: 10;
+  }
+
+  /* ── Values ────────────────────────────────── */
+  .about-values { padding: 6rem 0; background: #f7f7f7; }
+  .about-values .about-h2 { margin-bottom: 3rem; }
+  .values-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+  }
+  .value-card {
+    background: #fff;
+    border-radius: 1.25rem;
+    padding: 2rem 1.75rem;
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .value-card:hover {
+    box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+    transform: translateY(-3px);
+  }
+  .value-icon { font-size: 2rem; margin-bottom: 1rem; }
+  .value-card h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 0.5rem;
+  }
+  .value-card p { font-size: 0.875rem; line-height: 1.65; color: #666; }
+
+  /* ── Dark section ──────────────────────────── */
+  .about-dark { padding: 7rem 0; background: #0a0a0a; }
+  .dark-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: center;
+  }
+  .location-pill {
+    display: inline-block;
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.4);
+    font-weight: 500;
+  }
+  .disclaimer-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 1.25rem;
+    padding: 2.25rem;
+  }
+  .disclaimer-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .disclaimer-icon {
+    width: 36px; height: 36px;
+    background: #22c55e;
+    border-radius: 0.5rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    color: #fff;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .disclaimer-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+  }
+  .disclaimer-card > p {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 1.5rem;
+  }
+  .disclaimer-card strong { color: #fff; font-weight: 600; }
+  .disclaimer-list { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+  .disclaimer-list li {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.45);
+    padding-left: 1.25rem;
+    position: relative;
+  }
+  .disclaimer-list li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 6px; height: 6px;
+    background: #4ade80;
+    border-radius: 50%;
+  }
+
+  /* ── CTA ───────────────────────────────────── */
+  .about-cta { padding: 7rem 0; background: #fff; }
+  .cta-btns {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* ── Responsive ────────────────────────────── */
+  @media (max-width: 900px) {
+    .story-grid, .dark-grid { grid-template-columns: 1fr; gap: 3rem; }
+    .story-visual { display: none; }
+    .values-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 560px) {
+    .values-grid { grid-template-columns: 1fr; }
+    .about-stats-inner { flex-wrap: wrap; }
+    .about-stat { flex: 0 0 50%; border-bottom: 1px solid rgba(255,255,255,0.07); }
+  }
+</style>

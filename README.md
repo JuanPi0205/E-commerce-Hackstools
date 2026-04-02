@@ -1,73 +1,73 @@
-# Astro starter theme to build a headless ecommerce website with Shopify
+# 🌑 E-commerce Hacking Store - Medellín, Colombia
 
-The theme is built with Svelte but you can use any framework you like (React, Vue, Solid etc.) thanks to Astro.
-Tailwind UI free components are used for the design.
+Bienvenido al repositorio oficial de este plataforma de e-commerce especializada en herramientas, gadgets de hacking y ciberseguridad, con sede en **Medellín, Colombia**.
 
-![astro_shopify_preview](https://user-images.githubusercontent.com/10447155/214480671-8380f410-cbfb-4f53-a6bb-5c744073e2f2.jpg)
+Este proyecto está diseñado para ofrecer una experiencia y estética inspirada en el mundo del hacking (modo oscuro, estilo terminal y neón) para apasionados de la ciberseguridad, combinada con un alto rendimiento de ventas online.
 
-## 🧑‍🚀 Where to start
+## 💻 Sobre el Proyecto
 
-1. Create a `.env` file based on `.env.example` with your Shopify store url and your public and private access tokens
-2. The credentials are used inside the `/utils/config.ts` file, you can update the API version there
-3. Run `npm install` or `yarn` or `pnpm install`
-4. Run `npm run dev` or `yarn run dev` or `pnpm run dev`
+Este e-commerce está construido utilizando una arquitectura **Headless**, lo que nos permite separar el frontend del backend para obtener la máxima velocidad y flexibilidad:
+- **Frontend Framework:** [Astro](https://astro.build/) - Elegido por su velocidad extrema, su arquitectura de "islas" y Zero-JS por defecto.
+- **Backend/E-commerce Engine:** [Shopify](https://www.shopify.com/) - Utilizando la **Storefront API** (GraphQL) para la gestión segura y robusta de productos, inventario y checkout.
+- **Estilos:** Vanilla CSS / Tailwind (enfocado en alto rendimiento y control total del diseño).
+- **Interactividad local:** Gestión dinámica de ubicaciones adaptada para Colombia (selección encadenada de Departamentos y Municipios), carritos de compra manejados en el cliente y más.
 
-## Shopify Configuration Guide
+## 🕵️‍♂️ Características Principales
 
-- Create a new account or use an existing one. https://accounts.shopify.com/store-login
-- Add the [Shopify Headless channel](https://apps.shopify.com/headless) to your store
-- Click on `Add Storefront`
-- Copy/Paste your `public` and `private` access tokens to your .env file
-- Next, check Storefront API access scopes
-  - `unauthenticated_read_product_listings` and `unauthenticated_read_product_inventory` access should be fine to get you started.
-  - Add more scopes if you require additional permissions.
+- **Temática Ciberseguridad Estética Premium:** Interfaz de usuario "dark mode" diseñada cuidadosamente para simular un ambiente *underground* pero profesional.
+- **Logística Localizada:** Selector de envíos completamente funcional con la base de datos de departamentos y municipios de Colombia (ej. Antioquia -> Medellín).
+- **Catálogo Especializado:** Venta de items (simulados/reales) relacionados con Red Team, Blue Team, Gadgets (Drones, Flipper Zero, etc.) y herramientas de software.
+- **Experiencia de Compra Fluida:** Carrito lateral dinámico, integración con la pasarela nativa de pagos de Shopify y transiciones de página suaves.
 
-### Shopify Troubleshooting
+---
 
-- If you encounter an error like `error code 401` you likely didn't set this up correctly. Revisit your scopes and be sure add at least one test product. Also make sure you are using the `Storefront API` and not the `Admin API` as the endpoints and scopes are different.
-- If you do not see a checkout sidebar, or if it is empty after adding a product, you need to add an image to your test product.
+## 🧑‍🚀 Guía de Desarrollo
 
-## 🚀 Project Structure
+### Requisitos Previos
 
-Inside the project, you'll see the following folders and files:
+- Node.js (v18+)
+- Cuenta de Shopify con la aplicación de [Headless](https://apps.shopify.com/headless) instalada.
 
-```
+### Instalación
+
+1. Clona el repositorio e instala las dependencias:
+   ```bash
+   npm install
+   # o si prefieres pnpm
+   pnpm install
+   ```
+
+2. Configura las variables de entorno. Renombra `.env.example` a `.env` (o crea uno nuevo) y agrega tus credenciales de Shopify:
+   ```env
+   PUBLIC_SHOPIFY_STORE_DOMAIN=tu-tienda.myshopify.com
+   PUBLIC_SHOPIFY_STOREFRONT_API_TOKEN=tu_storefront_access_token
+   # También asegúrate de definir otras variables como se indique en tu `.env.example` (API versión, etc.)
+   ```
+   > **Nota:** Asegúrate de que tu access token tenga los permisos `unauthenticated_read_product_listings` y `unauthenticated_read_product_inventory`.
+
+3. Inicia el servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
+   *El servidor local generalmente se ejecutará en http://localhost:4321.*
+
+## 🚀 Estructura del Proyecto
+
+Astro sigue una estructura predecible y organizada:
+
+```text
 /
-├── public/
+├── public/           # Archivos estáticos (imágenes, íconos, robots.txt, etc.)
 ├── src/
-│   └── components/
-│       └── Header.astro
-│   └── layouts/
-│       └── BaseLayout.astro
-│   └── pages/
-│       └── index.astro
-│   └── stores/
-│       └── cart.ts
-│   └── styles/
-│       └── global.css
-│   └── utils/
-│       └── shopify.ts
+│   ├── components/   # Componentes reusables de interfaz (Header, Cart, Modal, etc.)
+│   ├── layouts/      # Estructuras base de las páginas (Head, Footer persistente)
+│   ├── pages/        # Rutas de la aplicación (index.astro, about.astro, cart.astro)
+│   ├── stores/       # Estados compartidos (manejo del carrito local - nanostores)
+│   ├── styles/       # Hojas de estilo globales
+│   └── utils/        # Lógica de conexión con Shopify API, ubicaciones (Colombia), etc.
 └── package.json
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## ⚡️ Rendimiento
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                | Action                                           |
-| :--------------------- | :----------------------------------------------- |
-| `npm install`          | Installs dependencies                            |
-| `npm run dev`          | Starts local dev server at `localhost:3000`      |
-| `npm run build`        | Build your production site to `./dist/`          |
-| `npm run preview`      | Preview your build locally, before deploying     |
-| `npm run astro ...`    | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro --help` | Get help using the Astro CLI                     |
-
-## ⚡️ Lighthouse
-![lighthouse_astro_shopify](https://user-images.githubusercontent.com/10447155/214448698-ce2a1ef6-6fbd-4fca-b8b6-c5194b72a15b.jpg)
+Al ser impulsado por Astro, este sitio mantiene una puntuación muy alta en métricas como **Lighthouse**, optimizando las conversiones y garantizando una navegación muy rápida para los usuarios a lo largo y ancho de Colombia, independientemente de su conexión a internet.

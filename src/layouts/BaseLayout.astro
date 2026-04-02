@@ -1,37 +1,29 @@
 ---
-import Header from "../components/Header.astro";
-import Footer from "../components/Footer.astro";
-import CartDrawer from "../components/CartDrawer.svelte";
-import AnnouncementBar from "../components/AnnouncementBar.astro";
+// src/layouts/BaseLayout.astro
+import Header from '../components/common/Header.astro';
+import Footer from '../components/common/Footer.astro';
+import '../styles/global.css';
 
-export interface Props {
+interface Props {
   title: string;
   description?: string;
 }
 
-const defaultDesc =
-  "A lightweight and minimalit Astro starter theme using Shopify with Svelte, Tailwind, and TypeScript.";
-
-const { title, description = defaultDesc } = Astro.props as Props;
+const { title, description = "The best e-commerce store built with Astro" } = Astro.props;
 ---
 
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
     <meta name="description" content={description} />
-    <style is:global>
-      @import "../styles/global.css";
-    </style>
+    <title>{title} | Astro E-commerce</title>
+
   </head>
-  <body>
-    <AnnouncementBar />
-    <CartDrawer client:idle />
+  <body class="bg-white text-gray-900 font-sans antialiased min-h-screen flex flex-col">
     <Header />
-    <main>
+    <main class="flex-grow w-full">
       <slot />
     </main>
     <Footer />

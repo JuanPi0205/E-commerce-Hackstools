@@ -1,17 +1,18 @@
 ---
-import { getProducts } from "./../utils/shopify";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import Products from "../components/Products.astro";
-import { setCache } from "../utils/cache";
-
-const title = "Astro + Shopify";
-const headers = Astro.request.headers;
-const ip = headers.get("x-vercel-forwarded-for") || Astro.clientAddress;
-const products = await getProducts({ buyerIP: ip });
-
-setCache.short(Astro);
+import HeroBanner from "../components/features/home/HeroBanner.astro";
+import PromoGrid from "../components/features/home/PromoGrid.astro";
+import CategoryList from "../components/features/home/CategoryList.astro";
+import ProductList from "../components/features/home/ProductList.astro";
+import DiscountSection from "../components/features/home/DiscountSection.astro";
+import SaleBanner from "../components/features/home/SaleBanner.astro";
 ---
 
-<BaseLayout title={title}>
-  <Products products={products} />
+<BaseLayout title="Cyber | HackTools">
+  <HeroBanner />
+  <PromoGrid />
+  <CategoryList />
+  <ProductList />
+  <DiscountSection />
+  <SaleBanner />
 </BaseLayout>

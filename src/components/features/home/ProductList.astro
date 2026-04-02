@@ -1,0 +1,170 @@
+---
+// src/components/features/home/ProductList.astro
+
+const products = [
+  {
+    id: "hackrf-one-sdr",
+    title: "HackRF One SDR Peripheral Tactical Bundle",
+    price: 340,
+    image: "/images/hero_hackrf.png",
+  },
+  {
+    id: "wifi-pineapple-vii",
+    title: "WiFi Pineapple Mark VII Tactical Edition",
+    price: 119,
+    image: "/images/promo_pineapple.png",
+  },
+  {
+    id: "flipper-zero",
+    title: "Flipper Zero Portable Multi-tool",
+    price: 169,
+    image: "/images/promo_flipper.png",
+  },
+  {
+    id: "proxmark3-rdv4",
+    title: "Proxmark3 RDV4 High Frequency RFID Cloner",
+    price: 315,
+    image: "/images/prod_proxmark.png",
+  },
+  {
+    id: "signal-jammer",
+    title: "Tactical Signal Jammer Multi-band Blocker",
+    price: 450,
+    image: "/images/promo_jammer.png",
+  },
+  {
+    id: "usb-rubber-ducky",
+    title: "USB Rubber Ducky - Payload Injection Unit",
+    price: 80,
+    image: "/images/prod_rubberducky.png",
+  },
+  {
+    id: "bash-bunny-ii",
+    title: "Bash Bunny Mark II Payload Platform",
+    price: 119,
+    image: "/images/prod_rubberducky.png",
+  },
+  {
+    id: "bladerf-2-xa4",
+    title: "BladeRF 2.0 micro xA4 Software Defined Radio",
+    price: 480,
+    image: "/images/hero_hackrf.png",
+  }
+];
+
+const HEART_EMPTY = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#CFCFCF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
+const HEART_FILLED = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
+---
+
+<section class="py-16 bg-white">
+  <div class="container mx-auto px-4 max-w-7xl">
+    
+    <!-- Tabs -->
+    <div class="flex gap-8 mb-10 border-b border-gray-200">
+      <button class="text-black font-semibold pb-2 border-b-2 border-black">New Arrival</button>
+      <button class="text-[#888] font-medium pb-2 border-b-2 border-transparent hover:text-black transition-colors">Bestseller</button>
+      <button class="text-[#888] font-medium pb-2 border-b-2 border-transparent hover:text-black transition-colors">Featured Products</button>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {products.map((product) => (
+        <div class="bg-[#F6F6F6] rounded-xl p-6 flex flex-col items-center text-center relative group">
+
+          <!-- Wishlist Button -->
+          <button
+            class="btn-wishlist absolute top-4 right-4 transition-transform hover:scale-110"
+            data-id={product.id}
+            data-title={product.title}
+            data-price={product.price}
+            data-image={product.image}
+            data-handle={product.title}
+            aria-label="Add to wishlist"
+          >
+            <Fragment set:html={HEART_EMPTY} />
+          </button>
+          
+          <!-- Product Image -->
+          <div class="w-full h-[200px] flex items-center justify-center mb-6 mt-4">
+            <img src={product.image} alt={product.title} class="max-h-full max-w-[80%] object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105" />
+          </div>
+
+          <!-- Product Details -->
+          <h3 class="text-sm font-medium text-black mb-2 line-clamp-2 px-2 h-[40px] leading-snug">{product.title}</h3>
+          <p class="text-2xl font-bold text-black mb-6">${product.price}</p>
+          
+          <!-- Buy Now Button -->
+          <button
+            class="btn-add-to-cart w-full bg-black text-white font-medium py-3 rounded-lg hover:bg-gray-800 transition-colors mt-auto"
+            data-id={product.id}
+            data-title={product.title}
+            data-price={product.price}
+            data-image={product.image}
+            data-handle={product.title}
+          >
+            Buy Now
+          </button>
+        </div>
+      ))}
+    </div>
+
+  </div>
+</section>
+
+<script>
+  import { addToCart } from '../../../utils/cart';
+  import { toggleWishlist, isInWishlist } from '../../../utils/wishlist';
+
+  const HEART_EMPTY = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#CFCFCF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
+  const HEART_FILLED = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
+
+  function syncHearts() {
+    document.querySelectorAll<HTMLButtonElement>('.btn-wishlist').forEach((btn) => {
+      const id = btn.dataset.id!;
+      btn.innerHTML = isInWishlist(id) ? HEART_FILLED : HEART_EMPTY;
+    });
+  }
+
+  // Wire wishlist buttons
+  document.querySelectorAll<HTMLButtonElement>('.btn-wishlist').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id!;
+      toggleWishlist({
+        id,
+        title: btn.dataset.title!,
+        price: parseFloat(btn.dataset.price!),
+        image: btn.dataset.image!,
+        handle: btn.dataset.handle!,
+      });
+      syncHearts();
+    });
+  });
+
+  // Wire add-to-cart buttons
+  document.querySelectorAll<HTMLButtonElement>('.btn-add-to-cart').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      addToCart({
+        id: btn.dataset.id!,
+        title: btn.dataset.title!,
+        handle: btn.dataset.handle!,
+        price: parseFloat(btn.dataset.price!),
+        image: btn.dataset.image!,
+      });
+      const orig = btn.textContent;
+      btn.textContent = '✓ Added!';
+      btn.classList.replace('bg-black', 'bg-green-600');
+      btn.classList.remove('hover:bg-gray-800');
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.classList.replace('bg-green-600', 'bg-black');
+        btn.classList.add('hover:bg-gray-800');
+      }, 1200);
+    });
+  });
+
+  // Keep hearts in sync when wishlist changes (e.g. from wishlist page)
+  window.addEventListener('wishlist:updated', syncHearts);
+
+  // Initial sync
+  syncHearts();
+</script>

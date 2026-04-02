@@ -1,0 +1,116 @@
+---
+// src/components/features/home/DiscountSection.astro
+
+const categories = [
+  {
+    title: "Essential Gear",
+    description: "Multi-tools, lockpicks, and field essentials for physical security auditing.",
+    image: "/images/promo_flipper.png",
+    bgColor: "bg-white",
+    textColor: "text-black",
+    buttonClass: "border-black text-black hover:bg-black hover:text-white"
+  },
+  {
+    title: "Wireless Auditing",
+    description: "Routers, adapters, and SDRs for testing wireless network security.",
+    image: "/images/promo_pineapple.png",
+    bgColor: "bg-[#F9F9F9]",
+    textColor: "text-black",
+    buttonClass: "border-black text-black hover:bg-black hover:text-white"
+  },
+  {
+    title: "RF Exploitation",
+    description: "Software Defined Radios and jammers for RF analysis and interception.",
+    image: "/images/promo_jammer.png",
+    bgColor: "bg-[#EDEDED]",
+    textColor: "text-black",
+    buttonClass: "border-black text-black hover:bg-black hover:text-white"
+  },
+  {
+    title: "Field Stations",
+    description: "Pre-configured, hardened laptops ready for advanced mobile red teaming.",
+    image: "/images/promo_laptop.png",
+    bgColor: "bg-[#2D2D2D]",
+    textColor: "text-white",
+    buttonClass: "border-white text-white hover:bg-white hover:text-black"
+  }
+];
+
+const products = [
+  {
+    title: "HackRF One SDR Peripheral Tactical Bundle",
+    price: "$340",
+    image: "/images/hero_hackrf.png",
+    isFavorite: false
+  },
+  {
+    title: "USB Rubber Ducky - Payload Injection Unit",
+    price: "$80",
+    image: "/images/prod_rubberducky.png",
+    isFavorite: false
+  },
+  {
+    title: "Proxmark3 RDV4 High Frequency RFID Cloner",
+    price: "$315",
+    image: "/images/prod_proxmark.png",
+    isFavorite: false
+  },
+  {
+    title: "Tactical Signal Jammer Multi-band Blocker",
+    price: "$450",
+    image: "/images/promo_jammer.png",
+    isFavorite: false
+  }
+];
+---
+
+<section class="py-16">
+  <div class="container mx-auto px-4 max-w-7xl">
+    
+    <!-- Top Banners Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 overflow-hidden mb-24">
+      {categories.map((category) => (
+        <div class={`${category.bgColor} flex flex-col p-8 md:p-12 items-center text-center`}>
+          <div class="w-full h-[200px] flex items-center justify-center mb-8">
+            <img src={category.image} alt={category.title} class="max-h-full object-contain" />
+          </div>
+          <h3 class={`text-3xl font-light mb-4 ${category.textColor}`}>{category.title}</h3>
+          <p class={`text-sm mb-8 leading-relaxed opacity-70 ${category.textColor}`}>{category.description}</p>
+          <a href="/shop" class={`mt-auto inline-block border px-10 py-3 rounded-md transition-colors font-medium text-sm ${category.buttonClass}`}>Shop Now</a>
+        </div>
+      ))}
+    </div>
+
+    <!-- Discounts Section -->
+    <h2 class="text-2xl font-semibold text-black mb-8">Discounts up to -50%</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {products.map((product) => (
+        <div class="bg-[#F6F6F6] rounded-xl p-6 flex flex-col items-center text-center relative group">
+          <!-- Wishlist Icon -->
+          <button class="absolute top-4 right-4 transition-transform hover:scale-110">
+            {product.isFavorite ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#CFCFCF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            )}
+          </button>
+          
+          <!-- Product Image -->
+          <div class="w-full h-[200px] flex items-center justify-center mb-6 mt-4">
+            <img src={product.image} alt={product.title} class="max-h-full max-w-[80%] object-contain transition-transform duration-300 group-hover:scale-105" />
+          </div>
+
+          <!-- Product Details -->
+          <h3 class="text-sm font-medium text-black mb-2 line-clamp-2 px-2 h-[40px] leading-snug">{product.title}</h3>
+          <p class="text-2xl font-bold text-black mb-6">{product.price}</p>
+          
+          <!-- Buy Now Button -->
+          <button class="w-full bg-black text-white font-medium py-3 rounded-lg hover:bg-gray-800 transition-colors mt-auto">
+            Buy Now
+          </button>
+        </div>
+      ))}
+    </div>
+
+  </div>
+</section>

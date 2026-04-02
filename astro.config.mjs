@@ -5,12 +5,14 @@ import tailwindcss from "@tailwindcss/vite";
 // https://astro.build/config
 import svelte from "@astrojs/svelte";
 
+import react from "@astrojs/react";
+
 // https://astro.build/config
 export default defineConfig({
   output: "server",
   adapter: vercel(),
 
-  integrations: [svelte()],
+  integrations: [svelte(), react()],
 
   vite: {
     plugins: [tailwindcss()],

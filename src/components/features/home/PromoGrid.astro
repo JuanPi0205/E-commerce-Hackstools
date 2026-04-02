@@ -1,0 +1,54 @@
+---
+// src/components/features/home/PromoGrid.astro
+---
+
+<section class="grid grid-cols-1 lg:grid-cols-2">
+  
+  <!-- Left Column: PS5 (Top), Headphones & VR (Bottom) -->
+  <div class="flex flex-col">
+    <!-- Top Row: Flipper -->
+    <div class="bg-white flex flex-col md:flex-row items-center overflow-hidden h-full lg:h-[350px]">
+      <div class="w-full md:w-1/2 flex justify-center p-8">
+        <img src="/images/promo_flipper.png" alt="Flipper Zero" class="w-full max-w-[250px] object-cover mix-blend-multiply" />
+      </div>
+      <div class="w-full md:w-1/2 p-8 md:pl-0 text-left">
+        <h2 class="text-4xl font-semibold text-black mb-4">Flipper Zero</h2>
+        <p class="text-[#888] text-sm leading-relaxed max-w-sm">Portable multi-tool for geeks. Explore radio protocols, access control systems, hardware, and much more.</p>
+      </div>
+    </div>
+
+    <!-- Bottom Row: Pineapple & Jammer -->
+    <div class="flex flex-col md:flex-row h-full lg:h-[350px]">
+      <!-- Pineapple -->
+      <div class="bg-[#EDEDED] w-full md:w-1/2 flex flex-col items-start justify-center p-8 relative overflow-hidden group">
+        <div class="z-10 w-[60%]">
+          <h2 class="text-3xl font-light text-black mb-1">WiFi<br/><span class="font-semibold">Pineapple</span></h2>
+          <p class="text-[#888] text-xs leading-relaxed mt-2">Tactical WiFi pentesting<br/>and auditing router</p>
+        </div>
+        <img src="/images/promo_pineapple.png" alt="WiFi Pineapple" class="absolute -right-12 top-1/2 -translate-y-1/2 w-[280px] object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-110" />
+      </div>
+      
+      <!-- Jammer -->
+      <div class="bg-[#353535] w-full md:w-1/2 flex flex-col items-end justify-center p-8 text-right relative overflow-hidden group">
+        <div class="z-10 w-[60%]">
+          <h2 class="text-3xl font-light text-white mb-2">Tactical<br/>Signal <span class="font-semibold">Jammer</span></h2>
+          <p class="text-[#888] text-xs leading-relaxed">Multi-band RF blocker<br/>for securing<br/>communications</p>
+        </div>
+        <img src="/images/promo_jammer.png" alt="Signal Jammer" class="absolute -left-12 top-1/2 -translate-y-1/2 w-[280px] object-contain mix-blend-screen transition-transform duration-500 group-hover:scale-110" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Laptop -->
+  <div class="bg-[#EDEDED] flex flex-col md:flex-row items-center justify-between p-12 overflow-hidden min-h-[500px] lg:h-[700px] relative">
+    <div class="w-full md:w-5/12 z-10 text-left">
+      <h2 class="text-5xl font-light text-black mb-2 leading-tight">Pentest<br/><span class="font-semibold">Laptop</span></h2>
+      <p class="text-[#888] text-sm mb-8 leading-relaxed max-w-sm">A stealthy, high-performance workstation disguised as a standard business laptop. Equipped with Kali Linux, internal SDRs, and high-gain WiFi adapters for discreet auditing.</p>
+      <a href="/shop" class="inline-block border border-black text-black px-10 py-3 rounded-md hover:bg-black hover:text-white transition-colors font-medium">Shop Now</a>
+    </div>
+    <div class="absolute right-[-10%] bottom-[0%] h-[70%] md:h-[90%] lg:h-[100%] w-[90%] md:w-[70%] flex justify-end pointer-events-none">
+      <img src="/images/promo_laptop.png" alt="Pentest Laptop" class="h-full w-auto object-cover object-left-bottom drop-shadow-2xl" />
+    </div>
+  </div>
+  
+</section>

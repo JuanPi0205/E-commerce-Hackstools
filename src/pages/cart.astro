@@ -1,0 +1,184 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Shopping Cart | HackTools">
+  <div class="min-h-screen flex items-center justify-center px-4 py-16">
+    <div class="w-full max-w-7xl">
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
+
+        <!-- Left Column: Cart Items -->
+        <div>
+          <h1 class="text-3xl font-semibold text-black mb-10">Shopping Cart</h1>
+
+          <!-- Empty state -->
+          <div id="cart-empty" class="hidden py-20 text-center text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto mb-4 opacity-40" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            <p class="text-lg font-medium">Your cart is empty</p>
+            <a href="/catalog" class="mt-4 inline-block text-sm underline text-black hover:opacity-70 transition-opacity">Continue Shopping</a>
+          </div>
+
+          <!-- Items list -->
+          <div id="cart-items" class="flex flex-col"></div>
+        </div>
+
+        <!-- Right Column: Order Summary -->
+        <div class="flex items-start justify-center">
+          <div class="sticky top-8 w-full">
+            <h2 class="text-2xl font-semibold text-black mb-8">Order Summary</h2>
+
+            <!-- Discount Code -->
+            <div class="mb-6">
+              <label class="block text-sm text-[#888] mb-2 font-medium">Discount code / Promo code</label>
+              <input type="text" placeholder="Code" class="w-full border border-gray-200 rounded-lg px-4 py-3 outline-none focus:border-black text-sm transition-colors" />
+            </div>
+
+            <!-- Bonus Card -->
+            <div class="mb-8">
+              <label class="block text-sm text-[#888] mb-2 font-medium">Your bonus card number</label>
+              <div class="flex gap-2">
+                <input type="text" placeholder="Enter Card Number" class="w-full border border-gray-200 rounded-lg px-4 py-3 outline-none focus:border-black text-sm transition-colors flex-1" />
+              </div>
+            </div>
+
+            <!-- Totals -->
+            <div class="space-y-4 mb-8">
+              <div class="flex justify-between items-center text-sm font-semibold">
+                <span class="text-black">Subtotal</span>
+                <span id="summary-subtotal" class="text-black">$0</span>
+              </div>
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-[#888]">Estimated Tax</span>
+                <span class="font-semibold text-black">$50</span>
+              </div>
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-[#888]">Estimated shipping &amp; Handling</span>
+                <span class="font-semibold text-black">$29</span>
+              </div>
+            </div>
+
+            <!-- Final Total -->
+            <div class="flex justify-between items-center mb-8">
+              <span class="text-black font-semibold">Total</span>
+              <span id="summary-total" class="text-black text-xl font-bold">$79</span>
+            </div>
+
+            <button class="w-full bg-black text-white font-medium py-4 rounded-xl hover:bg-gray-800 transition-colors">
+              Checkout
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import { getCart, updateQuantity, removeFromCart } from '../utils/cart';
+  import type { CartItem } from '../utils/cart';
+
+  const TAX = 50;
+  const SHIPPING = 29;
+
+  function formatPrice(n: number) {
+    return '$' + n.toFixed(2).replace(/\.00$/, '');
+  }
+
+  function renderCart() {
+    const items = getCart();
+    const cartItemsEl = document.getElementById('cart-items')!;
+    const cartEmptyEl = document.getElementById('cart-empty')!;
+    const subtotalEl = document.getElementById('summary-subtotal')!;
+    const totalEl = document.getElementById('summary-total')!;
+
+    cartItemsEl.innerHTML = '';
+
+    if (items.length === 0) {
+      cartEmptyEl.classList.remove('hidden');
+      cartItemsEl.classList.add('hidden');
+      subtotalEl.textContent = formatPrice(0);
+      totalEl.textContent = formatPrice(TAX + SHIPPING);
+      return;
+    }
+
+    cartEmptyEl.classList.add('hidden');
+    cartItemsEl.classList.remove('hidden');
+
+    const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    subtotalEl.textContent = formatPrice(subtotal);
+    totalEl.textContent = formatPrice(subtotal + TAX + SHIPPING);
+
+    items.forEach((item: CartItem) => {
+      const row = document.createElement('div');
+      row.className = 'flex items-center justify-between py-8 border-b border-gray-200 last:border-0';
+      row.dataset.id = item.id;
+
+      row.innerHTML = `
+        <!-- Image & Details -->
+        <div class="flex items-center gap-6 w-[50%]">
+          <div class="w-[100px] h-[100px] bg-[#F6F6F6] rounded-xl flex items-center justify-center p-2 shrink-0">
+            <img src="${item.image}" alt="${item.title}" class="max-h-full max-w-full object-contain mix-blend-multiply" />
+          </div>
+          <div>
+            <h3 class="font-medium text-black text-base">${item.title}</h3>
+            <p class="text-[#888] text-xs mt-2">${item.handle}</p>
+          </div>
+        </div>
+
+        <!-- Quantity Controls -->
+        <div class="flex items-center gap-2 w-[25%] justify-center">
+          <button class="btn-decrease w-8 h-8 flex items-center justify-center text-black hover:bg-gray-100 rounded-md transition-colors border border-gray-200">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+          <span class="qty-display w-10 h-10 border border-gray-200 rounded-md flex items-center justify-center font-medium text-black text-sm">${item.quantity}</span>
+          <button class="btn-increase w-8 h-8 flex items-center justify-center text-black hover:bg-gray-100 rounded-md transition-colors border border-gray-200">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+        </div>
+
+        <!-- Price & Remove -->
+        <div class="flex items-center justify-end gap-8 w-[25%]">
+          <p class="item-price text-lg font-medium text-black">${formatPrice(item.price * item.quantity)}</p>
+          <button class="btn-remove text-gray-400 hover:text-red-500 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      `;
+
+      // Decrease quantity (remove if reaches 0)
+      row.querySelector('.btn-decrease')!.addEventListener('click', () => {
+        updateQuantity(item.id, -1);
+        renderCart();
+      });
+
+      // Increase quantity
+      row.querySelector('.btn-increase')!.addEventListener('click', () => {
+        updateQuantity(item.id, 1);
+        renderCart();
+      });
+
+      // Remove item entirely
+      row.querySelector('.btn-remove')!.addEventListener('click', () => {
+        // Animate out
+        row.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+        row.style.opacity = '0';
+        row.style.transform = 'translateX(16px)';
+        setTimeout(() => {
+          removeFromCart(item.id);
+          renderCart();
+        }, 200);
+      });
+
+      cartItemsEl.appendChild(row);
+    });
+  }
+
+  // Initial render
+  renderCart();
+
+  // Re-render when cart is updated from other tabs / components
+  window.addEventListener('cart:updated', () => renderCart());
+</script>

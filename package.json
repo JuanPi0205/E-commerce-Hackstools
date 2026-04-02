@@ -16,7 +16,7 @@
     "@astrojs/svelte": "^7.2.1",
     "@astrojs/vercel": "^8.2.9",
     "@nanostores/persistent": "^1.2.0",
-    "@shopify/hydrogen-react": "^2025.7.0",
+    "@shopify/hydrogen-react": "^2026.1.2",
     "@tailwindcss/vite": "^4.1.16",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",

@@ -1,266 +1,129 @@
-// Mock de Shopify - Datos de prueba para desarrollo sin cuenta de Shopify
+import {
+  ProductsQuery,
+  ProductByHandleQuery,
+  GetCartQuery,
+  CreateCartMutation,
+  AddCartLinesMutation,
+  RemoveCartLinesMutation,
+  UpdateCartLinesMutation,
+} from "./graphql";
+import {
+  ProductsResponseSchema,
+  ProductResponseSchema,
+  CartResponseSchema,
+  CartCreateResponseSchema,
+  CartLinesAddResponseSchema,
+  CartLinesRemoveResponseSchema,
+  CartLinesUpdateResponseSchema,
+} from "./schemas";
 
-const mockProducts = [
-  {
-    id: "1",
-    title: "Auriculares Inalámbricos Pro",
-    handle: "auriculares-inalambricos-pro",
-    description: "Auriculares Bluetooth con cancelación activa de ruido y estuche de carga rápida.",
-    priceRange: {
-      minVariantPrice: { amount: "199.99", currencyCode: "USD" }
-    },
-    images: {
-      nodes: [
-        {
-          url: "https://placehold.co/400x400/3b82f6/ffffff?text=Auriculares+Pro",
-          width: 400,
-          height: 400,
-          altText: "Auriculares Inalámbricos Pro"
-        }
-      ]
-    },
-    featuredImage: {
-      url: "https://placehold.co/400x400/3b82f6/ffffff?text=Auriculares+Pro",
-      width: 400,
-      height: 400,
-      altText: "Auriculares Inalámbricos Pro"
-    },
-    variants: {
-      nodes: [
-        {
-          id: "variant-1",
-          title: "Negro / Estuche inalámbrico",
-          availableForSale: true,
-          quantityAvailable: 15,
-          price: { amount: "199.99", currencyCode: "USD" }
-        }
-      ]
-    }
-  },
-  {
-    id: "2",
-    title: "Teclado Mecánico RGB",
-    handle: "teclado-mecanico-rgb",
-    description: "Teclado mecánico para gaming con switches rojos y retroiluminación RGB.",
-    priceRange: {
-      minVariantPrice: { amount: "129.99", currencyCode: "USD" }
-    },
-    images: {
-      nodes: [
-        {
-          url: "https://placehold.co/400x400/10b981/ffffff?text=Teclado+RGB",
-          width: 400,
-          height: 400,
-          altText: "Teclado Mecánico RGB"
-        }
-      ]
-    },
-    featuredImage: {
-      url: "https://placehold.co/400x400/10b981/ffffff?text=Teclado+RGB",
-      width: 400,
-      height: 400,
-      altText: "Teclado Mecánico RGB"
-    },
-    variants: {
-      nodes: [
-        {
-          id: "variant-2",
-          title: "US / Switch rojo",
-          availableForSale: true,
-          quantityAvailable: 8,
-          price: { amount: "129.99", currencyCode: "USD" }
-        }
-      ]
-    }
-  },
-  {
-    id: "3",
-    title: "Monitor 27\" 4K IPS",
-    handle: "monitor-27-4k-ips",
-    description: "Monitor 27 pulgadas 4K UHD, panel IPS y tasa de refresco de 144 Hz.",
-    priceRange: {
-      minVariantPrice: { amount: "399.99", currencyCode: "USD" }
-    },
-    images: {
-      nodes: [
-        {
-          url: "https://placehold.co/400x400/f59e0b/ffffff?text=Monitor+4K",
-          width: 400,
-          height: 400,
-          altText: "Monitor 27 pulgadas 4K IPS"
-        }
-      ]
-    },
-    featuredImage: {
-      url: "https://placehold.co/400x400/f59e0b/ffffff?text=Monitor+4K",
-      width: 400,
-      height: 400,
-      altText: "Monitor 27 pulgadas 4K IPS"
-    },
-    variants: {
-      nodes: [
-        {
-          id: "variant-3",
-          title: "27\" / Negro",
-          availableForSale: true,
-          quantityAvailable: 5,
-          price: { amount: "399.99", currencyCode: "USD" }
-        }
-      ]
-    }
-  },
-  {
-    id: "4",
-    title: "Laptop Ultrabook 14\"",
-    handle: "laptop-ultrabook-14",
-    description: "Ultrabook de 14\" con procesador Intel i7, 16GB RAM y SSD 512GB.",
-    priceRange: {
-      minVariantPrice: { amount: "1099.99", currencyCode: "USD" }
-    },
-    images: {
-      nodes: [
-        {
-          url: "https://placehold.co/400x400/8b5cf6/ffffff?text=Ultrabook+14",
-          width: 400,
-          height: 400,
-          altText: "Laptop Ultrabook 14 pulgadas"
-        }
-      ]
-    },
-    featuredImage: {
-      url: "https://placehold.co/400x400/8b5cf6/ffffff?text=Ultrabook+14",
-      width: 400,
-      height: 400,
-      altText: "Laptop Ultrabook 14 pulgadas"
-    },
-    variants: {
-      nodes: [
-        {
-          id: "variant-4",
-          title: "i7 / 16GB / 512GB",
-          availableForSale: true,
-          quantityAvailable: 6,
-          price: { amount: "1099.99", currencyCode: "USD" }
-        }
-      ]
-    }
-  },
-  {
-    id: "5",
-    title: "Mouse Gaming Inalámbrico",
-    handle: "mouse-gaming-inalambrico",
-    description: "Mouse inalámbrico con sensor óptico de 26K DPI y 6 botones programables.",
-    priceRange: {
-      minVariantPrice: { amount: "79.99", currencyCode: "USD" }
-    },
-    images: {
-      nodes: [
-        {
-          url: "https://placehold.co/400x400/ef4444/ffffff?text=Mouse+Gaming",
-          width: 400,
-          height: 400,
-          altText: "Mouse Gaming Inalámbrico"
-        }
-      ]
-    },
-    featuredImage: {
-      url: "https://placehold.co/400x400/ef4444/ffffff?text=Mouse+Gaming",
-      width: 400,
-      height: 400,
-      altText: "Mouse Gaming Inalámbrico"
-    },
-    variants: {
-      nodes: [
-        {
-          id: "variant-5",
-          title: "Negro / RGB",
-          availableForSale: true,
-          quantityAvailable: 18,
-          price: { amount: "79.99", currencyCode: "USD" }
-        }
-      ]
-    }
-  },
-  {
-    id: "6",
-    title: "Hub USB-C 8-en-1",
-    handle: "hub-usb-c-8-en-1",
-    description: "Hub USB-C con HDMI 4K, lector de tarjetas, USB 3.0 y carga Power Delivery.",
-    priceRange: {
-      minVariantPrice: { amount: "59.99", currencyCode: "USD" }
-    },
-    images: {
-      nodes: [
-        {
-          url: "https://placehold.co/400x400/06b6d4/ffffff?text=Hub+USB-C",
-          width: 400,
-          height: 400,
-          altText: "Hub USB-C 8-en-1"
-        }
-      ]
-    },
-    featuredImage: {
-      url: "https://placehold.co/400x400/06b6d4/ffffff?text=Hub+USB-C",
-      width: 400,
-      height: 400,
-      altText: "Hub USB-C 8-en-1"
-    },
-    variants: {
-      nodes: [
-        {
-          id: "variant-6",
-          title: "Gris espacial",
-          availableForSale: true,
-          quantityAvailable: 25,
-          price: { amount: "59.99", currencyCode: "USD" }
-        }
-      ]
-    }
+const domain = import.meta.env.PUBLIC_SHOPIFY_STORE_DOMAIN || import.meta.env.PUBLIC_SHOPIFY_SHOP || "";
+const storefrontAccessToken = import.meta.env.PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN || "";
+const endpoint = `https://${domain}/api/2024-01/graphql.json`;
+
+interface ShopifyFetchParams {
+  query: string;
+  variables?: Record<string, any>;
+}
+
+async function shopifyFetch<T>({ query, variables }: ShopifyFetchParams): Promise<T> {
+  if (!domain || !storefrontAccessToken) {
+    throw new Error("Missing Shopify environment variables: PUBLIC_SHOPIFY_STORE_DOMAIN or PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN");
   }
-];
 
-// ===== INTERFACES =====
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Storefront-Access-Token": storefrontAccessToken,
+      },
+      body: JSON.stringify({ query, variables }),
+    });
 
-interface GetProductsOptions {
-  buyerIP?: string;
-  first?: number;
-  query?: string;
+    const body = await response.json();
+
+    if (body.errors) {
+      console.error("GraphQL Errors:", body.errors);
+      throw new Error(`GraphQL Errors: ${body.errors[0].message}`);
+    }
+
+    return body as T;
+  } catch (error) {
+    console.error("Shopify Fetch Network/Parse Error:", error);
+    throw error;
+  }
 }
 
-interface GetRecommendationsOptions {
-  productId: string;
-  buyerIP?: string;
-}
+// ===== EXPORTED FUNCTIONS =====
 
-// ===== FUNCIONES EXPORTADAS =====
+export async function getProducts(options: { first?: number; after?: string } = {}) {
+  const first = options.first || 10;
+  const data = await shopifyFetch({
+    query: ProductsQuery,
+    variables: { first, after: options.after },
+  });
 
-export async function getProducts(options: GetProductsOptions = {}) {
-  console.log("⚠️ Modo desarrollo: Usando productos mock (tecnología)");
-  return mockProducts;
-}
-
-export async function getProductRecommendations(options: GetRecommendationsOptions) {
-  console.log("⚠️ Modo desarrollo: Recomendaciones mock para producto:", options.productId);
-  
-  // Devuelve productos diferentes al actual (simulando recomendaciones)
-  const recommendations = mockProducts.filter(p => p.id !== options.productId);
-  
-  // Devuelve máximo 4 recomendaciones
-  return recommendations.slice(0, 4);
+  const parsedData = ProductsResponseSchema.parse(data);
+  return parsedData.data.products.edges.map((edge) => edge.node);
 }
 
 export async function getProductByHandle(handle: string) {
-  return mockProducts.find(p => p.handle === handle) || mockProducts[0];
+  const data = await shopifyFetch({
+    query: ProductByHandleQuery,
+    variables: { handle },
+  });
+
+  const parsedData = ProductResponseSchema.parse(data);
+  return parsedData.data.product;
 }
 
-export async function getProductById(id: string) {
-  return mockProducts.find(p => p.id === id) || null;
+export async function getCart(cartId: string) {
+  const data = await shopifyFetch({
+    query: GetCartQuery,
+    variables: { id: cartId },
+  });
+
+  const parsedData = CartResponseSchema.parse(data);
+  return parsedData.data.cart;
 }
 
-export async function createCheckout(variantId: string, quantity: number = 1) {
-  return {
-    id: "mock-checkout-id",
-    webUrl: "#checkout-no-disponible",
-    lineItems: { edges: [] }
-  };
+export async function createCart(merchandiseId: string, quantity: number = 1) {
+  const data = await shopifyFetch({
+    query: CreateCartMutation,
+    variables: { id: merchandiseId, quantity },
+  });
+
+  const parsedData = CartCreateResponseSchema.parse(data);
+  return parsedData.data.cartCreate.cart;
+}
+
+export async function addCartLines(cartId: string, merchandiseId: string, quantity: number = 1) {
+  const data = await shopifyFetch({
+    query: AddCartLinesMutation,
+    variables: { cartId, merchandiseId, quantity },
+  });
+
+  const parsedData = CartLinesAddResponseSchema.parse(data);
+  return parsedData.data.cartLinesAdd.cart;
+}
+
+export async function removeCartLines(cartId: string, lineIds: string[]) {
+  const data = await shopifyFetch({
+    query: RemoveCartLinesMutation,
+    variables: { cartId, lineIds },
+  });
+
+  const parsedData = CartLinesRemoveResponseSchema.parse(data);
+  return parsedData.data.cartLinesRemove.cart;
+}
+
+export async function updateCartLines(cartId: string, lines: { id: string; quantity: number }[]) {
+  const data = await shopifyFetch({
+    query: UpdateCartLinesMutation,
+    variables: { cartId, lines },
+  });
+
+  const parsedData = CartLinesUpdateResponseSchema.parse(data);
+  return parsedData.data.cartLinesUpdate.cart;
 }

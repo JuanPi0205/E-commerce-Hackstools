@@ -6,13 +6,16 @@ import CategoryList from "../components/features/home/CategoryList.astro";
 import ProductList from "../components/features/home/ProductList.astro";
 import DiscountSection from "../components/features/home/DiscountSection.astro";
 import SaleBanner from "../components/features/home/SaleBanner.astro";
+
+import { getProducts } from "../utils/shopify";
+const products = await getProducts({ first: 8 });
 ---
 
 <BaseLayout title="Cyber | HackTools">
   <HeroBanner />
   <PromoGrid />
   <CategoryList />
-  <ProductList />
+  <ProductList products={products} />
   <DiscountSection />
   <SaleBanner />
 </BaseLayout>

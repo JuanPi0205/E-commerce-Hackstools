@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getProducts } from '../utils/shopify';
 
 const filters = {
   categories: [
@@ -25,28 +26,8 @@ const filters = {
   ]
 };
 
-const products = [
-  { id: "hackrf-one-sdr",    title: "HackRF One SDR Peripheral Tactical Bundle",      price: 340, image: "/images/hero_hackrf.png" },
-  { id: "wifi-pineapple-vii",title: "WiFi Pineapple Mark VII Tactical Edition",        price: 119, image: "/images/promo_pineapple.png" },
-  { id: "flipper-zero",      title: "Flipper Zero Portable Multi-tool",               price: 169, image: "/images/promo_flipper.png" },
-  { id: "proxmark3-rdv4",    title: "Proxmark3 RDV4 High Frequency RFID Cloner",      price: 315, image: "/images/prod_proxmark.png" },
-  { id: "signal-jammer",     title: "Tactical Signal Jammer Multi-band Blocker",      price: 450, image: "/images/promo_jammer.png" },
-  { id: "usb-rubber-ducky",  title: "USB Rubber Ducky - Payload Injection Unit",      price: 80,  image: "/images/prod_rubberducky.png" },
-  { id: "bash-bunny-ii",     title: "Bash Bunny Mark II Payload Platform",            price: 119, image: "/images/prod_rubberducky.png" },
-  { id: "bladerf-2-xa4",     title: "BladeRF 2.0 micro xA4 Software Defined Radio",  price: 480, image: "/images/hero_hackrf.png" },
-  { id: "omg-cable-elite",   title: "O.MG Cable Elite - Malicious Lightning",         price: 180, image: "/images/prod_rubberducky.png" },
-  // Page 2+
-  { id: "lan-turtle",        title: "LAN Turtle – Remote Access Implant",             price: 55,  image: "/images/prod_rubberducky.png" },
-  { id: "packet-squirrel",   title: "Packet Squirrel – Network Tools Implant",        price: 60,  image: "/images/prod_rubberducky.png" },
-  { id: "plunder-bug",       title: "Plunder Bug LAN Tap – Passive Sniffer",          price: 40,  image: "/images/prod_proxmark.png" },
-  { id: "wifi-coconut",      title: "Wi-Fi Coconut – 14-Radio USB Monitor",           price: 99,  image: "/images/promo_pineapple.png" },
-  { id: "alfa-awus036ach",   title: "Alfa AWUS036ACH Dual-Band USB WiFi Adapter",    price: 50,  image: "/images/promo_pineapple.png" },
-  { id: "keysy-rfid",        title: "Keysy RFID Duplicator & Cloner",                price: 39,  image: "/images/prod_proxmark.png" },
-  { id: "yard-stick-one",    title: "YARD Stick One Sub-GHz Radio Transceiver",      price: 99,  image: "/images/hero_hackrf.png" },
-  { id: "ubertooth-one",     title: "Ubertooth One Bluetooth Sniffer & Analysis",    price: 119, image: "/images/hero_hackrf.png" },
-  { id: "usb-killer-pro",    title: "USB Killer Pro V3 – Surge Testing Device",      price: 65,  image: "/images/prod_rubberducky.png" },
-];
-
+// Fetch real products from Shopify
+const products = await getProducts({ first: 18 });
 
 const ITEMS_PER_PAGE = 9;
 const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
@@ -60,7 +41,7 @@ const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
         <!-- Top Bar -->
         <div class="flex justify-between items-center mb-8">
           <p class="text-[#888] text-sm font-medium">
-            Selected Products: <span class="text-black font-semibold text-lg ml-1">85</span>
+            Selected Products: <span class="text-black font-semibold text-lg ml-1">{products.length}</span>
           </p>
           <div class="relative">
             <select class="appearance-none border border-gray-200 rounded-lg px-4 py-2 pr-10 text-sm focus:outline-none focus:border-black bg-white w-[180px] cursor-pointer">
@@ -74,17 +55,22 @@ const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
 
         <!-- Product Grid -->
         <div id="product-grid" class="grid grid-cols-2 lg:grid-cols-3 gap-4">
-          {products.map((product, index) => (
+          {products.map((product, index) => {
+            const variantId = product?.variants?.nodes?.[0]?.id || "";
+            const price = product?.variants?.nodes?.[0]?.price?.amount || "0.00";
+            const image = product?.images?.nodes?.[0]?.url || product?.featuredImage?.url || "https://placehold.co/400x400";
+            
+            return (
             <div class="bg-[#F6F6F6] rounded-2xl p-5 flex flex-col items-center text-center relative group" data-index={index}>
 
               <!-- Wishlist Button -->
               <button
                 class="btn-wishlist absolute top-4 right-4 transition-transform hover:scale-110"
-                data-id={product.id}
-                data-title={product.title}
-                data-price={product.price}
-                data-image={product.image}
-                data-handle={product.title}
+                data-id={product?.id}
+                data-title={product?.title}
+                data-price={price}
+                data-image={image}
+                data-handle={product?.handle}
                 aria-label="Add to wishlist"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CFCFCF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
@@ -92,25 +78,21 @@ const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
 
               <!-- Product Image -->
               <div class="w-full h-[160px] flex items-center justify-center mb-4 mt-2">
-                <img src={product.image} alt={product.title} class="max-h-full max-w-[75%] object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105" />
+                <img src={image} alt={product?.title} class="max-h-full max-w-[75%] object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105" />
               </div>
 
               <!-- Details -->
-              <h3 class="text-[13px] font-medium text-black mb-2 line-clamp-2 leading-snug min-h-[36px] px-1">{product.title}</h3>
-              <p class="text-lg font-bold text-black mb-4">${product.price}</p>
+              <h3 class="text-[13px] font-medium text-black mb-2 line-clamp-2 leading-snug min-h-[36px] px-1">{product?.title}</h3>
+              <p class="text-lg font-bold text-black mb-4">${price}</p>
 
               <button
                 class="btn-add-to-cart w-full bg-black text-white font-medium py-2.5 rounded-lg hover:bg-gray-800 transition-colors mt-auto text-sm"
-                data-id={product.id}
-                data-title={product.title}
-                data-price={product.price}
-                data-image={product.image}
-                data-handle={product.title}
+                data-variant-id={variantId}
               >
                 Buy Now
               </button>
             </div>
-          ))}
+          )})}
         </div>
 
         {totalPages > 1 && (
@@ -136,7 +118,7 @@ const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
 </BaseLayout>
 
 <script>
-  import { addToCart } from '../utils/cart';
+  import { addCartItem } from '../stores/cart';
   import { toggleWishlist, isInWishlist } from '../utils/wishlist';
 
   const HEART_EMPTY = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CFCFCF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
@@ -162,20 +144,22 @@ const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
   });
 
   document.querySelectorAll<HTMLButtonElement>('.btn-add-to-cart').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      addToCart({
-        id: btn.dataset.id!,
-        title: btn.dataset.title!,
-        handle: btn.dataset.handle!,
-        price: parseFloat(btn.dataset.price!),
-        image: btn.dataset.image!,
-      });
+    btn.addEventListener('click', async () => {
+      const variantId = btn.dataset.variantId!;
+      if (!variantId) return;
+
       const orig = btn.textContent;
+      btn.textContent = 'Adding...';
+      btn.disabled = true;
+
+      await addCartItem({ variantId, quantity: 1 });
+
       btn.textContent = '✓ Added!';
       btn.classList.replace('bg-black', 'bg-green-600');
       btn.classList.remove('hover:bg-gray-800');
       setTimeout(() => {
         btn.textContent = orig;
+        btn.disabled = false;
         btn.classList.replace('bg-green-600', 'bg-black');
         btn.classList.add('hover:bg-gray-800');
       }, 1200);

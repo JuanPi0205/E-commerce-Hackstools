@@ -64,7 +64,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
               <span id="summary-total" class="text-black text-xl font-bold">$79</span>
             </div>
 
-            <button class="w-full bg-black text-white font-medium py-4 rounded-xl hover:bg-gray-800 transition-colors">
+            <button id="btn-checkout" class="w-full bg-black text-white font-medium py-4 rounded-xl hover:bg-gray-800 transition-colors">
               Checkout
             </button>
 
@@ -77,41 +77,65 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 </BaseLayout>
 
 <script>
-  import { getCart, updateQuantity, removeFromCart } from '../utils/cart';
-  import type { CartItem } from '../utils/cart';
+  import { cart, isCartUpdating, removeCartItem, updateCartItemQuantity } from '../stores/cart';
 
   const TAX = 50;
   const SHIPPING = 29;
 
-  function formatPrice(n: number) {
-    return '$' + n.toFixed(2).replace(/\.00$/, '');
+  function formatPrice(amount: string, currencyCode: string) {
+    const num = parseFloat(amount);
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currencyCode,
+    }).format(num);
   }
 
-  function renderCart() {
-    const items = getCart();
+  function renderCart(cartData: any) {
     const cartItemsEl = document.getElementById('cart-items')!;
     const cartEmptyEl = document.getElementById('cart-empty')!;
     const subtotalEl = document.getElementById('summary-subtotal')!;
     const totalEl = document.getElementById('summary-total')!;
+    const checkoutBtn = document.getElementById('btn-checkout') as HTMLButtonElement;
 
     cartItemsEl.innerHTML = '';
 
-    if (items.length === 0) {
+    const nodes = cartData?.lines?.nodes || [];
+
+    if (nodes.length === 0) {
       cartEmptyEl.classList.remove('hidden');
       cartItemsEl.classList.add('hidden');
-      subtotalEl.textContent = formatPrice(0);
-      totalEl.textContent = formatPrice(TAX + SHIPPING);
+      subtotalEl.textContent = formatPrice("0", "USD");
+      totalEl.textContent = formatPrice((TAX + SHIPPING).toString(), "USD");
+      if (checkoutBtn) checkoutBtn.disabled = true;
       return;
     }
 
     cartEmptyEl.classList.add('hidden');
     cartItemsEl.classList.remove('hidden');
 
-    const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-    subtotalEl.textContent = formatPrice(subtotal);
-    totalEl.textContent = formatPrice(subtotal + TAX + SHIPPING);
+    const subtotal = cartData.cost.subtotalAmount;
+    const subtotalNum = parseFloat(subtotal.amount);
+    
+    subtotalEl.textContent = formatPrice(subtotal.amount, subtotal.currencyCode);
+    totalEl.textContent = formatPrice((subtotalNum + TAX + SHIPPING).toString(), subtotal.currencyCode);
 
-    items.forEach((item: CartItem) => {
+    if (checkoutBtn) {
+      checkoutBtn.disabled = false;
+      checkoutBtn.onclick = () => {
+        if (cartData.checkoutUrl) {
+          window.location.href = cartData.checkoutUrl;
+        }
+      };
+    }
+
+    nodes.forEach((item: any) => {
+      const merchandise = item.merchandise;
+      const product = merchandise.product;
+      const image = merchandise.image?.url || "https://placehold.co/400x400";
+      const title = product.title;
+      const priceAmount = item.cost.totalAmount.amount;
+      const currencyCode = item.cost.totalAmount.currencyCode;
+
       const row = document.createElement('div');
       row.className = 'flex items-center justify-between py-8 border-b border-gray-200 last:border-0';
       row.dataset.id = item.id;
@@ -120,17 +144,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <!-- Image & Details -->
         <div class="flex items-center gap-6 w-[50%]">
           <div class="w-[100px] h-[100px] bg-[#F6F6F6] rounded-xl flex items-center justify-center p-2 shrink-0">
-            <img src="${item.image}" alt="${item.title}" class="max-h-full max-w-full object-contain mix-blend-multiply" />
+            <img src="${image}" alt="${title}" class="max-h-full max-w-full object-contain mix-blend-multiply" />
           </div>
           <div>
-            <h3 class="font-medium text-black text-base">${item.title}</h3>
-            <p class="text-[#888] text-xs mt-2">${item.handle}</p>
+            <h3 class="font-medium text-black text-base">${title}</h3>
+            <p class="text-[#888] text-xs mt-2">${merchandise.title}</p>
           </div>
         </div>
 
         <!-- Quantity Controls -->
         <div class="flex items-center gap-2 w-[25%] justify-center">
-          <button class="btn-decrease w-8 h-8 flex items-center justify-center text-black hover:bg-gray-100 rounded-md transition-colors border border-gray-200">
+          <button class="btn-decrease w-8 h-8 flex items-center justify-center text-black hover:bg-gray-100 rounded-md transition-colors border border-gray-200" ${item.quantity <= 1 ? 'disabled style="opacity: 0.5"' : ''}>
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           </button>
           <span class="qty-display w-10 h-10 border border-gray-200 rounded-md flex items-center justify-center font-medium text-black text-sm">${item.quantity}</span>
@@ -141,23 +165,23 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
         <!-- Price & Remove -->
         <div class="flex items-center justify-end gap-8 w-[25%]">
-          <p class="item-price text-lg font-medium text-black">${formatPrice(item.price * item.quantity)}</p>
+          <p class="item-price text-lg font-medium text-black">${formatPrice(priceAmount, currencyCode)}</p>
           <button class="btn-remove text-gray-400 hover:text-red-500 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
       `;
 
-      // Decrease quantity (remove if reaches 0)
-      row.querySelector('.btn-decrease')!.addEventListener('click', () => {
-        updateQuantity(item.id, -1);
-        renderCart();
-      });
+      // Decrease quantity
+      if (item.quantity > 1) {
+        row.querySelector('.btn-decrease')!.addEventListener('click', () => {
+          updateCartItemQuantity(item.id, item.quantity - 1);
+        });
+      }
 
       // Increase quantity
       row.querySelector('.btn-increase')!.addEventListener('click', () => {
-        updateQuantity(item.id, 1);
-        renderCart();
+        updateCartItemQuantity(item.id, item.quantity + 1);
       });
 
       // Remove item entirely
@@ -167,8 +191,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         row.style.opacity = '0';
         row.style.transform = 'translateX(16px)';
         setTimeout(() => {
-          removeFromCart(item.id);
-          renderCart();
+          removeCartItem(item.id);
         }, 200);
       });
 
@@ -176,9 +199,30 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     });
   }
 
-  // Initial render
-  renderCart();
+  // Subscribe to Nanostores
+  cart.subscribe((cartData) => {
+    renderCart(cartData);
+  });
 
-  // Re-render when cart is updated from other tabs / components
-  window.addEventListener('cart:updated', () => renderCart());
+  isCartUpdating.subscribe((updating) => {
+    const checkoutBtn = document.getElementById('btn-checkout') as HTMLButtonElement;
+    const qtyButtons = document.querySelectorAll('.btn-decrease, .btn-increase, .btn-remove');
+
+    if (updating) {
+      if (checkoutBtn) {
+        checkoutBtn.disabled = true;
+        checkoutBtn.textContent = 'Updating...';
+        checkoutBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+      qtyButtons.forEach((btn: any) => btn.disabled = true);
+    } else {
+      if (checkoutBtn) {
+        checkoutBtn.disabled = false;
+        checkoutBtn.textContent = 'Checkout';
+        checkoutBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+      qtyButtons.forEach((btn: any) => btn.disabled = false);
+    }
+  });
+
 </script>

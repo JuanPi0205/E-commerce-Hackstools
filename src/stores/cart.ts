@@ -6,6 +6,7 @@ import {
   addCartLines,
   createCart,
   removeCartLines,
+  updateCartLines,
 } from "../utils/shopify";
 import type { CartResult } from "../utils/schemas";
 
@@ -15,12 +16,12 @@ export const isCartDrawerOpen = atom(false);
 // Cart is updating state (true or false) with initial value (false) and no persistent state (local storage)
 export const isCartUpdating = atom(false);
 
-const emptyCart = {
+const emptyCart: z.infer<typeof CartResult> = {
   id: "",
   checkoutUrl: "",
   totalQuantity: 0,
   lines: { nodes: [] },
-  cost: { subtotalAmount: { amount: "", currencyCode: "" } },
+  cost: { subtotalAmount: { amount: "0.0", currencyCode: "USD" } },
 };
 
 // Cart store with persistent state (local storage) and initial value
@@ -33,19 +34,15 @@ export const cart = persistentAtom<z.infer<typeof CartResult>>(
   }
 );
 
-// Fetch cart data if a cart exists in local storage, this is called during session start only
-// This is useful to validate if the cart still exists in Shopify and if it's not empty
-// Shopify automatically deletes the cart when the customer completes the checkout or if the cart is unused or abandoned after 10 days
-// https://shopify.dev/custom-storefronts/cart#considerations
+// Fetch cart data if a cart exists in local storage
 export async function initCart() {
-  const sessionStarted = sessionStorage.getItem("sessionStarted");
-  if (!sessionStarted) {
-    sessionStorage.setItem("sessionStarted", "true");
-    const localCart = cart.get();
-    const cartId = localCart?.id;
-    if (cartId) {
-      const data = await getCart(cartId);
+  const localCart = cart.get();
+  const cartId = localCart?.id;
 
+  if (cartId) {
+    isCartUpdating.set(true);
+    try {
+      const data = await getCart(cartId);
       if (data) {
         cart.set({
           id: data.id,
@@ -55,72 +52,106 @@ export async function initCart() {
           lines: data.lines,
         });
       } else {
-        // If the cart doesn't exist in Shopify, reset the cart store
+        // If the cart doesn't exist in Shopify (expired or invalid), reset the cart store
         cart.set(emptyCart);
       }
+    } catch (error) {
+      console.error("Error initializing cart:", error);
+      cart.set(emptyCart);
+    } finally {
+      isCartUpdating.set(false);
     }
   }
 }
 
 // Add item to cart or create a new cart if it doesn't exist yet
-export async function addCartItem(item: { id: string; quantity: number }) {
+export async function addCartItem({ variantId, quantity }: { variantId: string; quantity: number }) {
   const localCart = cart.get();
   const cartId = localCart?.id;
 
   isCartUpdating.set(true);
 
-  if (!cartId) {
-    const cartData = await createCart(item.id, item.quantity);
-
-    if (cartData) {
-      cart.set({
-        ...cart.get(),
-        id: cartData.id,
-        cost: cartData.cost,
-        checkoutUrl: cartData.checkoutUrl,
-        totalQuantity: cartData.totalQuantity,
-        lines: cartData.lines,
-      });
-      isCartUpdating.set(false);
-      isCartDrawerOpen.set(true);
+  try {
+    if (!cartId) {
+      const cartData = await createCart(variantId, quantity);
+      if (cartData) {
+        cart.set({
+          id: cartData.id,
+          cost: cartData.cost,
+          checkoutUrl: cartData.checkoutUrl,
+          totalQuantity: cartData.totalQuantity,
+          lines: cartData.lines,
+        });
+        isCartDrawerOpen.set(true);
+      }
+    } else {
+      const cartData = await addCartLines(cartId, variantId, quantity);
+      if (cartData) {
+        cart.set({
+          id: cartData.id,
+          cost: cartData.cost,
+          checkoutUrl: cartData.checkoutUrl,
+          totalQuantity: cartData.totalQuantity,
+          lines: cartData.lines,
+        });
+        isCartDrawerOpen.set(true);
+      }
     }
-  } else {
-    const cartData = await addCartLines(cartId, item.id, item.quantity);
-
-    if (cartData) {
-      cart.set({
-        ...cart.get(),
-        id: cartData.id,
-        cost: cartData.cost,
-        checkoutUrl: cartData.checkoutUrl,
-        totalQuantity: cartData.totalQuantity,
-        lines: cartData.lines,
-      });
-      isCartUpdating.set(false);
-      isCartDrawerOpen.set(true);
-    }
+  } catch (error) {
+    console.error("Error adding item to cart:", error);
+  } finally {
+    isCartUpdating.set(false);
   }
 }
 
-export async function removeCartItems(lineIds: string[]) {
+export async function removeCartItem(lineId: string) {
   const localCart = cart.get();
   const cartId = localCart?.id;
 
+  if (!cartId) return;
+
   isCartUpdating.set(true);
 
-  if (cartId) {
-    const cartData = await removeCartLines(cartId, lineIds);
-
+  try {
+    const cartData = await removeCartLines(cartId, [lineId]);
     if (cartData) {
       cart.set({
-        ...cart.get(),
         id: cartData.id,
         cost: cartData.cost,
         checkoutUrl: cartData.checkoutUrl,
         totalQuantity: cartData.totalQuantity,
         lines: cartData.lines,
       });
-      isCartUpdating.set(false);
     }
+  } catch (error) {
+    console.error("Error removing item from cart:", error);
+  } finally {
+    isCartUpdating.set(false);
+  }
+}
+
+export async function updateCartItemQuantity(lineId: string, quantity: number) {
+  const localCart = cart.get();
+  const cartId = localCart?.id;
+
+  if (!cartId) return;
+
+  isCartUpdating.set(true);
+
+  try {
+    const cartData = await updateCartLines(cartId, [{ id: lineId, quantity }]);
+    if (cartData) {
+      cart.set({
+        id: cartData.id,
+        cost: cartData.cost,
+        checkoutUrl: cartData.checkoutUrl,
+        totalQuantity: cartData.totalQuantity,
+        lines: cartData.lines,
+      });
+    }
+  } catch (error) {
+    console.error("Error updating item quantity:", error);
+  } finally {
+    isCartUpdating.set(false);
   }
 }

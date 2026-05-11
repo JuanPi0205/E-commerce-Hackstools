@@ -16,8 +16,8 @@ export const ImageResult = z
   .object({
     altText: z.string().nullable().optional(),
     url: z.string(),
-    width: z.number().positive().int(),
-    height: z.number().positive().int(),
+    width: z.number().positive().int().optional(),
+    height: z.number().positive().int().optional(),
   })
   .nullable();
 
@@ -58,7 +58,7 @@ export const VariantResult = z.object({
   id: z.string(),
   title: z.string(),
   availableForSale: z.boolean(),
-  quantityAvailable: z.number().int(),
+  quantityAvailable: z.number().int().optional(),
   price: MoneyV2Result,
 });
 
@@ -67,12 +67,77 @@ export const ProductResult = z
     id: z.string(),
     title: z.string(),
     handle: z.string(),
+    description: z.string().optional(),
     images: z.object({
       nodes: z.array(ImageResult),
     }),
     variants: z.object({
       nodes: z.array(VariantResult),
     }),
-    featuredImage: ImageResult.nullable(),
+    featuredImage: ImageResult.nullable().optional(),
   })
   .nullable();
+
+export const ProductsResponseSchema = z.object({
+  data: z.object({
+    products: z.object({
+      pageInfo: z.object({
+        hasNextPage: z.boolean(),
+        endCursor: z.string().nullable().optional(),
+      }).optional(),
+      edges: z.array(
+        z.object({
+          node: ProductResult,
+        })
+      ),
+    }),
+  }),
+});
+
+export const ProductResponseSchema = z.object({
+  data: z.object({
+    product: ProductResult,
+  }),
+});
+
+export const CartResponseSchema = z.object({
+  data: z.object({
+    cart: CartResult,
+  }),
+});
+
+export const CartCreateResponseSchema = z.object({
+  data: z.object({
+    cartCreate: z.object({
+      cart: CartResult,
+      userErrors: z.array(z.any()).optional(),
+    }),
+  }),
+});
+
+export const CartLinesAddResponseSchema = z.object({
+  data: z.object({
+    cartLinesAdd: z.object({
+      cart: CartResult,
+      userErrors: z.array(z.any()).optional(),
+    }),
+  }),
+});
+
+export const CartLinesRemoveResponseSchema = z.object({
+  data: z.object({
+    cartLinesRemove: z.object({
+      cart: CartResult,
+      userErrors: z.array(z.any()).optional(),
+    }),
+  }),
+});
+
+export const CartLinesUpdateResponseSchema = z.object({
+  data: z.object({
+    cartLinesUpdate: z.object({
+      cart: CartResult,
+      userErrors: z.array(z.any()).optional(),
+    }),
+  }),
+});

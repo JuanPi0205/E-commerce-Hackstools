@@ -53,6 +53,7 @@ fragment productFragment on Product {
   id
   title
   handle
+  description
   images (first: 10) {
     nodes {
       url
@@ -83,8 +84,12 @@ fragment productFragment on Product {
 `;
 
 export const ProductsQuery = `#graphql
-query ($first: Int!) {
-    products(first: $first) {
+query ($first: Int!, $after: String) {
+    products(first: $first, after: $after) {
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
       edges {
         node {
           ...productFragment
@@ -155,6 +160,21 @@ export const AddCartLinesMutation = `#graphql
 export const RemoveCartLinesMutation = `#graphql
   mutation ($cartId: ID!, $lineIds: [ID!]!) {
     cartLinesRemove (cartId: $cartId, lineIds: $lineIds) {
+      cart {
+        ...cartFragment
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+  ${CART_FRAGMENT}
+`;
+
+export const UpdateCartLinesMutation = `#graphql
+  mutation ($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
+    cartLinesUpdate (cartId: $cartId, lines: $lines) {
       cart {
         ...cartFragment
       }

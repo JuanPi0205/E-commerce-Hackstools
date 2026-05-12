@@ -15,15 +15,40 @@ import {
   CartLinesAddResponseSchema,
   CartLinesRemoveResponseSchema,
   CartLinesUpdateResponseSchema,
+  CollectionsResponseSchema,
+  CollectionResponseSchema
 } from "./schemas";
+import { COLLECTIONS_QUERY, PRODUCTS_QUERY, COLLECTION_QUERY } from './graphql';
 
 const domain = import.meta.env.PUBLIC_SHOPIFY_STORE_DOMAIN || import.meta.env.PUBLIC_SHOPIFY_SHOP || "";
 const storefrontAccessToken = import.meta.env.PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN || "";
 const endpoint = `https://${domain}/api/2024-01/graphql.json`;
 
+
 interface ShopifyFetchParams {
   query: string;
   variables?: Record<string, any>;
+}
+
+interface CollectionOptions {
+  first?: number;
+  sortKey?: string;
+  reverse?: boolean;
+}
+
+interface CollectionResponse {
+  collection?: {
+    products?: {
+      edges: any[];
+    };
+  };
+}
+
+export interface GetProductsOptions {
+  first?: number;
+  after?: string;
+  sortKey?: string;
+  reverse?: boolean;
 }
 
 async function shopifyFetch<T>({ query, variables }: ShopifyFetchParams): Promise<T> {
@@ -57,15 +82,22 @@ async function shopifyFetch<T>({ query, variables }: ShopifyFetchParams): Promis
 
 // ===== EXPORTED FUNCTIONS =====
 
-export async function getProducts(options: { first?: number; after?: string } = {}) {
-  const first = options.first || 10;
+export async function getProducts(options: GetProductsOptions = {}) {
+  const { first = 10, after, sortKey, reverse } = options;
+
   const data = await shopifyFetch({
-    query: ProductsQuery,
-    variables: { first, after: options.after },
+    query: PRODUCTS_QUERY,
+    variables: {
+      first,
+      after,
+      sortKey,
+      reverse
+    }
   });
 
+  // Usamos el esquema de Zod que ya tienes creado para validar y extraer la data correctamente
   const parsedData = ProductsResponseSchema.parse(data);
-  return parsedData.data.products.edges.map((edge) => edge.node);
+  return parsedData.data.products.edges.map((edge) => edge.node) || [];
 }
 
 export async function getProductByHandle(handle: string) {
@@ -126,4 +158,27 @@ export async function updateCartLines(cartId: string, lines: { id: string; quant
 
   const parsedData = CartLinesUpdateResponseSchema.parse(data);
   return parsedData.data.cartLinesUpdate.cart;
+}
+
+export async function getProductsByCollection(handle: string, options: CollectionOptions = {}) {
+  const { first = 10, sortKey = 'COLLECTION_DEFAULT', reverse = false } = options;
+
+  const data = await shopifyFetch({
+    query: COLLECTION_QUERY,
+    variables: { handle, first, sortKey, reverse }
+  });
+
+  const parsedData = CollectionResponseSchema.parse(data);
+
+  return parsedData.data.collection?.products?.edges.map((edge) => edge.node) || [];
+}
+
+export async function getCollections(first: number = 10) {
+  const data = await shopifyFetch({
+    query: COLLECTIONS_QUERY,
+    variables: { first }
+  });
+
+  const parsedData = CollectionsResponseSchema.parse(data);
+  return parsedData.data.collections.edges.map((edge) => edge.node) || [];
 }

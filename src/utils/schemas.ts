@@ -60,6 +60,7 @@ export const VariantResult = z.object({
   availableForSale: z.boolean(),
   quantityAvailable: z.number().int().optional(),
   price: MoneyV2Result,
+  compareAtPrice: MoneyV2Result.nullable().optional(), // <-- Añade esta línea
 });
 
 export const ProductResult = z
@@ -139,5 +140,40 @@ export const CartLinesUpdateResponseSchema = z.object({
       cart: CartResult,
       userErrors: z.array(z.any()).optional(),
     }),
+  }),
+});
+
+export const CollectionsResponseSchema = z.object({
+  data: z.object({
+    collections: z.object({
+      edges: z.array(
+        z.object({
+          node: z.object({
+            id: z.string(),
+            title: z.string(),
+            handle: z.string(),
+            image: ImageResult,
+          }),
+        })
+      ),
+    }),
+  }),
+});
+
+export const CollectionResponseSchema = z.object({
+  data: z.object({
+    collection: z.object({
+      products: z.object({
+        pageInfo: z.object({
+          hasNextPage: z.boolean(),
+          endCursor: z.string().nullable().optional(),
+        }).optional(),
+        edges: z.array(
+          z.object({
+            node: ProductResult,
+          })
+        ),
+      }).nullable().optional(),
+    }).nullable(),
   }),
 });

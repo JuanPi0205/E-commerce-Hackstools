@@ -72,6 +72,10 @@ fragment productFragment on Product {
         amount
         currencyCode
       }
+      compareAtPrice {
+        amount
+        currencyCode
+      }
     }
   }
   featuredImage {
@@ -185,4 +189,51 @@ export const UpdateCartLinesMutation = `#graphql
     }
   }
   ${CART_FRAGMENT}
+`;
+
+export const COLLECTIONS_QUERY = `#graphql
+  query getCollections($first: Int!) {
+    collections(first: $first) {
+      edges {
+        node {
+          id
+          title
+          handle
+          image {
+            url
+            altText
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const PRODUCTS_QUERY = `#graphql
+  query getProducts($first: Int!, $after: String, $sortKey: ProductSortKeys, $reverse: Boolean) {
+    products(first: $first, after: $after, sortKey: $sortKey, reverse: $reverse) {
+      edges {
+        node {
+          ...productFragment
+        }
+      }
+    }
+  }
+  ${PRODUCT_FRAGMENT}
+`;
+
+export const COLLECTION_QUERY = `#graphql
+  query getCollectionProducts($handle: String!, $first: Int!, $sortKey: ProductCollectionSortKeys, $reverse: Boolean) {
+    collection(handle: $handle) {
+      title
+      products(first: $first, sortKey: $sortKey, reverse: $reverse) {
+        edges {
+          node {
+            ...productFragment
+          }
+        }
+      }
+    }
+  }
+  ${PRODUCT_FRAGMENT}
 `;

@@ -1,116 +1,267 @@
 ---
 // src/components/features/home/DiscountSection.astro
+import { getProducts } from "../../../utils/shopify";
 
+// 1. Mantenemos tus banners promocionales estáticos
 const categories = [
   {
     title: "Essential Gear",
-    description: "Multi-tools, lockpicks, and field essentials for physical security auditing.",
+    description:
+      "Multi-tools, lockpicks, and field essentials for physical security auditing.",
     image: "/images/promo_flipper.png",
     bgColor: "bg-white",
     textColor: "text-black",
-    buttonClass: "border-black text-black hover:bg-black hover:text-white"
+    buttonClass: "border-black text-black hover:bg-black hover:text-white",
   },
   {
     title: "Wireless Auditing",
-    description: "Routers, adapters, and SDRs for testing wireless network security.",
+    description:
+      "Routers, adapters, and SDRs for testing wireless network security.",
     image: "/images/promo_pineapple.png",
     bgColor: "bg-[#F9F9F9]",
     textColor: "text-black",
-    buttonClass: "border-black text-black hover:bg-black hover:text-white"
+    buttonClass: "border-black text-black hover:bg-black hover:text-white",
   },
   {
     title: "RF Exploitation",
-    description: "Software Defined Radios and jammers for RF analysis and interception.",
+    description:
+      "Software Defined Radios and jammers for RF analysis and interception.",
     image: "/images/promo_jammer.png",
     bgColor: "bg-[#EDEDED]",
     textColor: "text-black",
-    buttonClass: "border-black text-black hover:bg-black hover:text-white"
+    buttonClass: "border-black text-black hover:bg-black hover:text-white",
   },
   {
     title: "Field Stations",
-    description: "Pre-configured, hardened laptops ready for advanced mobile red teaming.",
+    description:
+      "Pre-configured, hardened laptops ready for advanced mobile red teaming.",
     image: "/images/promo_laptop.png",
     bgColor: "bg-[#2D2D2D]",
     textColor: "text-white",
-    buttonClass: "border-white text-white hover:bg-white hover:text-black"
-  }
+    buttonClass: "border-white text-white hover:bg-white hover:text-black",
+  },
 ];
 
-const products = [
-  {
-    title: "HackRF One SDR Peripheral Tactical Bundle",
-    price: "$340",
-    image: "/images/hero_hackrf.png",
-    isFavorite: false
-  },
-  {
-    title: "USB Rubber Ducky - Payload Injection Unit",
-    price: "$80",
-    image: "/images/prod_rubberducky.png",
-    isFavorite: false
-  },
-  {
-    title: "Proxmark3 RDV4 High Frequency RFID Cloner",
-    price: "$315",
-    image: "/images/prod_proxmark.png",
-    isFavorite: false
-  },
-  {
-    title: "Tactical Signal Jammer Multi-band Blocker",
-    price: "$450",
-    image: "/images/promo_jammer.png",
-    isFavorite: false
-  }
-];
+// 2. Traemos productos reales de Shopify
+// Pedimos un lote de 20 para asegurarnos de encontrar algunos con descuento
+const allProducts = await getProducts({ first: 100 });
+
+// 3. Filtramos SOLO los que tienen descuento y limitamos a 4 para la cuadrícula
+const discountedProducts = allProducts
+  .filter((product) => {
+    const price = product?.variants?.nodes?.[0]?.price?.amount;
+    const compareAtPrice =
+      product?.variants?.nodes?.[0]?.compareAtPrice?.amount;
+
+    // Al agregar "&& price", TypeScript sabe con certeza que la variable no es undefined
+    // antes de dejarla pasar al parseFloat()
+    return (
+      compareAtPrice && price && parseFloat(compareAtPrice) > parseFloat(price)
+    );
+  })
+  .slice(0, 4);
+
+// Iconos de Wishlist
+const HEART_EMPTY = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#CFCFCF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
 ---
 
 <section class="py-16">
-  <div class="container mx-auto px-4 max-w-7xl">
-    
-    <!-- Top Banners Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 overflow-hidden mb-24">
-      {categories.map((category) => (
-        <div class={`${category.bgColor} flex flex-col p-8 md:p-12 items-center text-center`}>
-          <div class="w-full h-[200px] flex items-center justify-center mb-8">
-            <img src={category.image} alt={category.title} class="max-h-full object-contain" />
+  <div class="container mx-auto max-w-7xl px-4">
+    <div
+      class="mb-24 grid grid-cols-1 overflow-hidden md:grid-cols-2 lg:grid-cols-4"
+    >
+      {
+        categories.map((category) => (
+          <div
+            class={`${category.bgColor} flex flex-col items-center p-8 text-center md:p-12`}
+          >
+            <div class="mb-8 flex h-[200px] w-full items-center justify-center">
+              <img
+                src={category.image}
+                alt={category.title}
+                class="max-h-full object-contain"
+              />
+            </div>
+            <h3 class={`mb-4 text-3xl font-light ${category.textColor}`}>
+              {category.title}
+            </h3>
+            <p
+              class={`mb-8 text-sm leading-relaxed opacity-70 ${category.textColor}`}
+            >
+              {category.description}
+            </p>
+            <a
+              href="/catalog"
+              class={`mt-auto inline-block rounded-md border px-10 py-3 text-sm font-medium transition-colors ${category.buttonClass}`}
+            >
+              Shop Now
+            </a>
           </div>
-          <h3 class={`text-3xl font-light mb-4 ${category.textColor}`}>{category.title}</h3>
-          <p class={`text-sm mb-8 leading-relaxed opacity-70 ${category.textColor}`}>{category.description}</p>
-          <a href="/shop" class={`mt-auto inline-block border px-10 py-3 rounded-md transition-colors font-medium text-sm ${category.buttonClass}`}>Shop Now</a>
-        </div>
-      ))}
+        ))
+      }
     </div>
 
-    <!-- Discounts Section -->
-    <h2 class="text-2xl font-semibold text-black mb-8">Discounts up to -50%</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {products.map((product) => (
-        <div class="bg-[#F6F6F6] rounded-xl p-6 flex flex-col items-center text-center relative group">
-          <!-- Wishlist Icon -->
-          <button class="absolute top-4 right-4 transition-transform hover:scale-110">
-            {product.isFavorite ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#CFCFCF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-            )}
-          </button>
-          
-          <!-- Product Image -->
-          <div class="w-full h-[200px] flex items-center justify-center mb-6 mt-4">
-            <img src={product.image} alt={product.title} class="max-h-full max-w-[80%] object-contain transition-transform duration-300 group-hover:scale-105" />
-          </div>
-
-          <!-- Product Details -->
-          <h3 class="text-sm font-medium text-black mb-2 line-clamp-2 px-2 h-[40px] leading-snug">{product.title}</h3>
-          <p class="text-2xl font-bold text-black mb-6">{product.price}</p>
-          
-          <!-- Buy Now Button -->
-          <button class="w-full bg-black text-white font-medium py-3 rounded-lg hover:bg-gray-800 transition-colors mt-auto">
-            Buy Now
-          </button>
-        </div>
-      ))}
+    <div class="mb-8 flex items-end justify-between">
+      <h2 class="text-2xl font-semibold text-black">Discounts up to -50%</h2>
+      {
+        discountedProducts.length > 0 && (
+          <a
+            href="/catalog"
+            class="text-sm font-medium text-gray-500 underline underline-offset-4 transition-colors hover:text-black"
+          >
+            View all deals
+          </a>
+        )
+      }
     </div>
 
+    {
+      discountedProducts.length > 0 ? (
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {discountedProducts.map((product) => {
+            const variantId = product?.variants?.nodes?.[0]?.id || "";
+            const price =
+              product?.variants?.nodes?.[0]?.price?.amount || "0.00";
+            const compareAtPrice =
+              product?.variants?.nodes?.[0]?.compareAtPrice?.amount || "0.00";
+            const image =
+              product?.images?.nodes?.[0]?.url ||
+              product?.featuredImage?.url ||
+              "https://placehold.co/400x400";
+
+            // Cálculo del porcentaje de descuento
+            const discountPercentage = Math.round(
+              ((parseFloat(compareAtPrice) - parseFloat(price)) /
+                parseFloat(compareAtPrice)) *
+                100,
+            );
+
+            return (
+              <div class="group relative flex flex-col items-center overflow-hidden rounded-xl bg-[#F6F6F6] p-6 text-center">
+                <div class="absolute top-4 left-4 z-10 rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white shadow-sm">
+                  -{discountPercentage}%
+                </div>
+
+                <button
+                  class="btn-wishlist absolute top-4 right-4 z-10 transition-transform hover:scale-110"
+                  data-id={product?.id}
+                  data-title={product?.title}
+                  data-price={price}
+                  data-image={image}
+                  data-handle={product?.handle}
+                  aria-label="Add to wishlist"
+                >
+                  <Fragment set:html={HEART_EMPTY} />
+                </button>
+
+                <div class="mt-4 mb-6 flex h-[200px] w-full items-center justify-center">
+                  <img
+                    src={image}
+                    alt={product?.title}
+                    class="max-h-full max-w-[80%] object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105"
+                  />
+                </div>
+
+                <h3 class="mb-2 line-clamp-2 h-[40px] px-2 text-sm leading-snug font-medium text-black">
+                  {product?.title}
+                </h3>
+
+                <div class="mb-6 flex items-center justify-center gap-3">
+                  <span class="text-lg font-medium text-gray-400 line-through">
+                    ${compareAtPrice}
+                  </span>
+                  <span class="text-2xl font-bold text-black">${price}</span>
+                </div>
+
+                <button
+                  class="btn-add-to-cart mt-auto w-full rounded-lg bg-black py-3 font-medium text-white transition-colors hover:bg-gray-800"
+                  data-variant-id={variantId}
+                >
+                  Buy Now
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div class="rounded-xl border border-gray-100 bg-gray-50 p-12 text-center">
+          <p class="font-medium text-gray-500">
+            No active discounts right now. Check back soon for new deals on
+            tactical gear!
+          </p>
+        </div>
+      )
+    }
   </div>
 </section>
+
+<script>
+  import { addCartItem } from "../../../stores/cart";
+  import { toggleWishlist, isInWishlist } from "../../../utils/wishlist";
+
+  const HEART_EMPTY = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#CFCFCF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
+  const HEART_FILLED = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
+
+  function syncHearts() {
+    document
+      .querySelectorAll<HTMLButtonElement>(".btn-wishlist")
+      .forEach((btn) => {
+        const id = btn.dataset.id!;
+        if (id) {
+          btn.innerHTML = isInWishlist(id) ? HEART_FILLED : HEART_EMPTY;
+        }
+      });
+  }
+
+  function bindEvents() {
+    document
+      .querySelectorAll<HTMLButtonElement>(".btn-wishlist")
+      .forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.id!;
+          if (!id) return;
+
+          toggleWishlist({
+            id,
+            title: btn.dataset.title!,
+            price: parseFloat(btn.dataset.price!),
+            image: btn.dataset.image!,
+            handle: btn.dataset.handle!,
+          });
+          syncHearts();
+        });
+      });
+
+    document
+      .querySelectorAll<HTMLButtonElement>(".btn-add-to-cart")
+      .forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const variantId = btn.dataset.variantId!;
+          if (!variantId) return;
+
+          const orig = btn.textContent;
+          btn.textContent = "Adding...";
+          btn.disabled = true;
+
+          await addCartItem({ variantId, quantity: 1 });
+
+          btn.textContent = "✓ Added!";
+          btn.classList.replace("bg-black", "bg-green-600");
+          btn.classList.remove("hover:bg-gray-800");
+          setTimeout(() => {
+            btn.textContent = orig;
+            btn.disabled = false;
+            btn.classList.replace("bg-green-600", "bg-black");
+            btn.classList.add("hover:bg-gray-800");
+          }, 1200);
+        });
+      });
+  }
+
+  // Listener para sincronizar con otras secciones
+  window.addEventListener("wishlist:updated", syncHearts);
+
+  // Inicialización
+  bindEvents();
+  syncHearts();
+</script>

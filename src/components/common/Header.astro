@@ -113,16 +113,8 @@
 </header>
 
 <script>
-  import { getCartCount } from "../../utils/cart";
+  import { cart } from "../../stores/cart";
   import { getWishlistCount } from "../../utils/wishlist";
-
-  function updateCartBadge() {
-    const badge = document.getElementById("cart-badge");
-    if (!badge) return;
-    const count = getCartCount();
-    badge.textContent = count > 99 ? "99+" : String(count);
-    badge.style.display = count > 0 ? "flex" : "none";
-  }
 
   function updateWishlistBadge() {
     const badge = document.getElementById("wishlist-badge");
@@ -132,9 +124,15 @@
     badge.style.display = count > 0 ? "flex" : "none";
   }
 
-  updateCartBadge();
   updateWishlistBadge();
-
-  window.addEventListener("cart:updated", updateCartBadge);
   window.addEventListener("wishlist:updated", updateWishlistBadge);
+
+  // Subscribe to real Shopify cart for badge
+  cart.subscribe((cartData) => {
+    const badge = document.getElementById("cart-badge");
+    if (!badge) return;
+    const count = cartData?.totalQuantity || 0;
+    badge.textContent = count > 99 ? "99+" : String(count);
+    badge.style.display = count > 0 ? "flex" : "none";
+  });
 </script>

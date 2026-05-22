@@ -46,13 +46,16 @@ const HEART_FILLED = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height=
             <Fragment set:html={HEART_EMPTY} />
           </button>
           
-          <!-- Product Image -->
-          <div class="w-full h-[200px] flex items-center justify-center mb-6 mt-4">
-            <img src={image} alt={product?.title} class="max-h-full max-w-[80%] object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105" />
-          </div>
+          <!-- Product Image & Title Link -->
+          <a href={`/product/${product?.handle}`} class="w-full flex flex-col items-center">
+            <!-- Product Image -->
+            <div class="w-full h-[200px] flex items-center justify-center mb-6 mt-4">
+              <img src={image} alt={product?.title} class="max-h-full max-w-[80%] object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105" />
+            </div>
 
-          <!-- Product Details -->
-          <h3 class="text-sm font-medium text-black mb-2 line-clamp-2 px-2 h-[40px] leading-snug">{product?.title}</h3>
+            <!-- Product Details -->
+            <h3 class="text-sm font-medium text-black mb-2 line-clamp-2 px-2 h-[40px] leading-snug hover:underline">{product?.title}</h3>
+          </a>
           <p class="text-2xl font-bold text-black mb-6">${price}</p>
           
           <!-- Buy Now Button -->
@@ -157,10 +160,12 @@ const HEART_FILLED = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height=
                 <button class="btn-wishlist absolute top-4 right-4 transition-transform hover:scale-110" data-id="${product.id}" data-title="${product.title}" data-price="${price}" data-image="${image}" data-handle="${product.handle}" aria-label="Add to wishlist">
                   ${HEART_EMPTY}
                 </button>
-                <div class="w-full h-[200px] flex items-center justify-center mb-6 mt-4">
-                  <img src="${image}" alt="${product.title}" class="max-h-full max-w-[80%] object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105" />
-                </div>
-                <h3 class="text-sm font-medium text-black mb-2 line-clamp-2 px-2 h-[40px] leading-snug">${product.title}</h3>
+                <a href="/product/${product.handle}" class="w-full flex flex-col items-center">
+                  <div class="w-full h-[200px] flex items-center justify-center mb-6 mt-4">
+                    <img src="${image}" alt="${product.title}" class="max-h-full max-w-[80%] object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105" />
+                  </div>
+                  <h3 class="text-sm font-medium text-black mb-2 line-clamp-2 px-2 h-[40px] leading-snug hover:underline">${product.title}</h3>
+                </a>
                 <p class="text-2xl font-bold text-black mb-6">$${price}</p>
                 <button class="btn-add-to-cart w-full bg-black text-white font-medium py-3 rounded-lg hover:bg-gray-800 transition-colors mt-auto" data-variant-id="${variantId}">
                   Buy Now

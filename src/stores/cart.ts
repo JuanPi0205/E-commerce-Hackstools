@@ -95,6 +95,20 @@ export async function addCartItem({ variantId, quantity }: { variantId: string; 
           lines: cartData.lines,
         });
         isCartDrawerOpen.set(true);
+      } else {
+        // Fallback: If addCartLines fails (e.g., cart expired), create a new one
+        console.warn("Existing cart is invalid or expired, creating a new one.");
+        const newCartData = await createCart(variantId, quantity);
+        if (newCartData) {
+          cart.set({
+            id: newCartData.id,
+            cost: newCartData.cost,
+            checkoutUrl: newCartData.checkoutUrl,
+            totalQuantity: newCartData.totalQuantity,
+            lines: newCartData.lines,
+          });
+          isCartDrawerOpen.set(true);
+        }
       }
     }
   } catch (error) {

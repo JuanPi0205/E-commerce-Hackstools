@@ -76,13 +76,16 @@ const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CFCFCF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
               </button>
 
-              <!-- Product Image -->
-              <div class="w-full h-[160px] flex items-center justify-center mb-4 mt-2">
-                <img src={image} alt={product?.title} class="max-h-full max-w-[75%] object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105" />
-              </div>
+              <!-- Product Image & Title Link -->
+              <a href={`/product/${product?.handle}`} class="w-full flex flex-col items-center">
+                <!-- Product Image -->
+                <div class="w-full h-[160px] flex items-center justify-center mb-4 mt-2">
+                  <img src={image} alt={product?.title} class="max-h-full max-w-[75%] object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105" />
+                </div>
 
-              <!-- Details -->
-              <h3 class="text-[13px] font-medium text-black mb-2 line-clamp-2 leading-snug min-h-[36px] px-1">{product?.title}</h3>
+                <!-- Details -->
+                <h3 class="text-[13px] font-medium text-black mb-2 line-clamp-2 leading-snug min-h-[36px] px-1 hover:underline">{product?.title}</h3>
+              </a>
               <p class="text-lg font-bold text-black mb-4">${price}</p>
 
               <button

@@ -45,6 +45,8 @@ export const CartResult = z
     id: z.string(),
     cost: z.object({
       subtotalAmount: MoneyV2Result,
+      totalTaxAmount: MoneyV2Result.nullable().optional(),
+      totalAmount: MoneyV2Result,
     }),
     checkoutUrl: z.string(),
     totalQuantity: z.number().int(),
@@ -59,6 +61,7 @@ export const VariantResult = z.object({
   title: z.string(),
   availableForSale: z.boolean(),
   quantityAvailable: z.number().int().optional(),
+  image: z.object({ url: z.string() }).nullable().optional(),
   price: MoneyV2Result,
   compareAtPrice: MoneyV2Result.nullable().optional(), // <-- Añade esta línea
 });
@@ -69,6 +72,7 @@ export const ProductResult = z
     title: z.string(),
     handle: z.string(),
     description: z.string().optional(),
+    descriptionHtml: z.string().optional(),
     images: z.object({
       nodes: z.array(ImageResult),
     }),
@@ -98,6 +102,12 @@ export const ProductsResponseSchema = z.object({
 export const ProductResponseSchema = z.object({
   data: z.object({
     product: ProductResult,
+  }),
+});
+
+export const ProductRecommendationsResponseSchema = z.object({
+  data: z.object({
+    productRecommendations: z.array(ProductResult).optional().nullable(),
   }),
 });
 

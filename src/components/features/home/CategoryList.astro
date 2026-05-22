@@ -3,8 +3,7 @@
 import { getCollections } from "../../../utils/shopify";
 
 // Solicitamos las colecciones a Shopify.
-// Le pasamos 6 como límite para mantener la estructura de tu grid (lg:grid-cols-6)
-const collections = await getCollections(6);
+const collections = await getCollections(10);
 
 // Mapeamos los SVGs exactos que tenías, vinculándolos al 'handle' de Shopify.
 const iconMap: Record<string, string> = {
@@ -23,6 +22,7 @@ const iconMap: Record<string, string> = {
       <h2 class="text-2xl font-bold text-black">Browse By Category</h2>
       <div class="flex gap-4">
         <button
+          id="cat-prev"
           class="flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 text-black transition-colors hover:bg-gray-100"
         >
           <svg
@@ -39,6 +39,7 @@ const iconMap: Record<string, string> = {
           >
         </button>
         <button
+          id="cat-next"
           class="flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 text-black transition-colors hover:bg-gray-100"
         >
           <svg
@@ -57,7 +58,7 @@ const iconMap: Record<string, string> = {
       </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6">
+    <div id="cat-container" class="flex w-full gap-6 overflow-x-auto snap-x scroll-smooth pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       {
         collections.map((collection) => {
           // Buscamos el ícono basado en el handle de Shopify
@@ -69,7 +70,7 @@ const iconMap: Record<string, string> = {
           return (
             <a
               href={`/category/${collection.handle}`}
-              class="group flex flex-col items-center justify-center rounded-xl bg-[#EDEDED] py-8 transition-all duration-300 hover:bg-black hover:text-white"
+              class="group flex flex-1 snap-start flex-col items-center justify-center rounded-xl bg-[#EDEDED] py-8 transition-all duration-300 hover:bg-black hover:text-white min-w-[140px] sm:min-w-[160px] lg:min-w-[calc((100%-7.5rem)/6)]"
             >
               <div class="mb-4 flex h-8 w-8 items-center justify-center text-black group-hover:text-white">
                 {iconSvg ? (
@@ -92,3 +93,18 @@ const iconMap: Record<string, string> = {
     </div>
   </div>
 </section>
+
+<script>
+  const container = document.getElementById("cat-container");
+  const prevBtn = document.getElementById("cat-prev");
+  const nextBtn = document.getElementById("cat-next");
+
+  if (container && prevBtn && nextBtn) {
+    prevBtn.addEventListener("click", () => {
+      container.scrollBy({ left: -300, behavior: "smooth" });
+    });
+    nextBtn.addEventListener("click", () => {
+      container.scrollBy({ left: 300, behavior: "smooth" });
+    });
+  }
+</script>

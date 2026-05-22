@@ -8,6 +8,14 @@ fragment cartFragment on Cart {
       amount
       currencyCode
     }
+    totalTaxAmount {
+      amount
+      currencyCode
+    }
+    totalAmount {
+      amount
+      currencyCode
+    }
   }
   lines(first: 100) {
     nodes {
@@ -54,6 +62,7 @@ fragment productFragment on Product {
   title
   handle
   description
+  descriptionHtml
   images (first: 10) {
     nodes {
       url
@@ -68,6 +77,9 @@ fragment productFragment on Product {
       title
       availableForSale
       quantityAvailable
+      image {
+        url
+      }
       price {
         amount
         currencyCode

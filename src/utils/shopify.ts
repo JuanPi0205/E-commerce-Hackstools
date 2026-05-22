@@ -16,9 +16,10 @@ import {
   CartLinesRemoveResponseSchema,
   CartLinesUpdateResponseSchema,
   CollectionsResponseSchema,
-  CollectionResponseSchema
+  CollectionResponseSchema,
+  ProductRecommendationsResponseSchema
 } from "./schemas";
-import { COLLECTIONS_QUERY, PRODUCTS_QUERY, COLLECTION_QUERY } from './graphql';
+import { COLLECTIONS_QUERY, PRODUCTS_QUERY, COLLECTION_QUERY, ProductRecommendationsQuery } from './graphql';
 
 const domain = import.meta.env.PUBLIC_SHOPIFY_STORE_DOMAIN || import.meta.env.PUBLIC_SHOPIFY_SHOP || "";
 const storefrontAccessToken = import.meta.env.PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN || "";
@@ -108,6 +109,16 @@ export async function getProductByHandle(handle: string) {
 
   const parsedData = ProductResponseSchema.parse(data);
   return parsedData.data.product;
+}
+
+export async function getProductRecommendations(productId: string) {
+  const data = await shopifyFetch({
+    query: ProductRecommendationsQuery,
+    variables: { productId },
+  });
+
+  const parsedData = ProductRecommendationsResponseSchema.parse(data);
+  return parsedData.data.productRecommendations || [];
 }
 
 export async function getCart(cartId: string) {

@@ -58,6 +58,25 @@
     <!-- Icons -->
     <div class="ml-8 flex items-center gap-6">
       <a
+        id="user-link"
+        href="/auth/login"
+        aria-label="Iniciar sesión"
+        class="relative text-black transition-opacity hover:opacity-70"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          ><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg
+        >
+      </a>
+      <a
         href="/wishlist"
         aria-label="Wishlist"
         class="relative text-black transition-opacity hover:opacity-70"
@@ -115,6 +134,7 @@
 <script>
   import { cart } from "../../stores/cart";
   import { getWishlistCount } from "../../utils/wishlist";
+  import { $isAuthenticated } from "../../stores/auth";
 
   function updateWishlistBadge() {
     const badge = document.getElementById("wishlist-badge");
@@ -134,5 +154,19 @@
     const count = cartData?.totalQuantity || 0;
     badge.textContent = count > 99 ? "99+" : String(count);
     badge.style.display = count > 0 ? "flex" : "none";
+  });
+
+  // Subscribe to auth state
+  $isAuthenticated.subscribe((isAuth) => {
+    const userLink = document.getElementById("user-link");
+    if (userLink) {
+      if (isAuth) {
+        userLink.setAttribute("href", "/profile");
+        userLink.setAttribute("aria-label", "Mi Perfil");
+      } else {
+        userLink.setAttribute("href", "/auth/login");
+        userLink.setAttribute("aria-label", "Iniciar sesión");
+      }
+    }
   });
 </script>

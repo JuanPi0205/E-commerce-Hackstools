@@ -16,5 +16,8 @@ export default defineConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    server: {
+      allowedHosts: ['cool-baboons-worry.loca.lt']
+    }
   },
 });

@@ -1,43 +1,90 @@
 ---
 // src/components/features/home/HeroBanner.astro
+import { getProductByHandle } from "../../../utils/shopify";
+
+const productHandle = "hackrf-one-portapack";
+let product = null;
+
+try {
+  product = await getProductByHandle(productHandle);
+} catch (error) {
+  console.error("Error fetching hero product:", error);
+}
+
+let videoUrl = null;
+let posterUrl = null;
+
+if (product?.media?.nodes) {
+  const videoMedia = product.media.nodes.find(
+    (m: any) => m?.mediaContentType === "VIDEO",
+  );
+  if (videoMedia && videoMedia.sources) {
+    const mp4Source = videoMedia.sources.find(
+      (s: any) => s.format === "mp4" || s.url.endsWith(".mp4"),
+    );
+    if (mp4Source) {
+      videoUrl = mp4Source.url;
+    }
+    if (videoMedia.previewImage) {
+      posterUrl = videoMedia.previewImage.url;
+    }
+  }
+
+  // Fallback to main image if no video poster
+  if (!posterUrl && product.images?.nodes?.length > 0) {
+    posterUrl = product?.images?.nodes[0]?.url;
+  }
+}
 ---
 
-<section class="overflow-hidden bg-[#212121]">
-  <div class="container mx-auto max-w-7xl px-4">
-    <div
-      class="flex min-h-[600px] flex-col items-center justify-between py-12 md:flex-row md:py-0"
-    >
-      <!-- Text Content -->
-      <div class="z-10 w-full text-left md:w-1/2">
-        <h2 class="mb-2 text-xl font-semibold text-[#888] md:text-2xl">
-          Tactical SDR
-        </h2>
-        <h1
-          class="mb-4 text-5xl font-light tracking-tight text-white md:text-7xl"
-        >
-          HackRF <span class="font-bold">One</span>
-        </h1>
-        <p class="mb-8 max-w-md text-lg text-[#888]">
-          Software Defined Radio peripheral capable of transmission or reception
-          of radio signals from 1 MHz to 6 GHz.
-        </p>
-        <a
-          href="/shop"
-          class="inline-block rounded-md border border-white px-10 py-3 font-medium text-white transition-colors hover:bg-white hover:text-black"
-          >Shop Now</a
-        >
-      </div>
-
-      <!-- Image Content -->
-      <div
-        class="relative mt-12 flex w-full items-center justify-end md:mt-0 md:w-1/2"
+<section
+  class="relative flex min-h-[85vh] items-center justify-center overflow-hidden bg-[#212121]"
+>
+  {
+    videoUrl ? (
+      <video
+        class="absolute inset-0 z-0 h-full w-full object-cover"
+        autoplay
+        loop
+        muted
+        playsinline
+        poster={posterUrl || ""}
       >
-        <img
-          src="/images/hero_hackrf.png"
-          alt="HackRF One"
-          class="w-full max-w-[500px] object-contain drop-shadow-2xl"
-        />
-      </div>
+        <source src={videoUrl} type="video/mp4" />
+      </video>
+    ) : posterUrl ? (
+      <img
+        src={posterUrl}
+        alt={product?.title || "Product Background"}
+        class="absolute inset-0 z-0 h-full w-full object-cover"
+      />
+    ) : null
+  }
+
+  <!-- Dark overlay -->
+  <div class="absolute inset-0 z-0 bg-black/60"></div>
+
+  <div class="relative z-10 container mx-auto max-w-7xl px-4 text-center">
+    <div class="flex flex-col items-center justify-center">
+      <h1
+        class="mb-6 text-5xl font-bold tracking-tight text-white drop-shadow-lg md:text-7xl"
+      >
+        {product?.title || "HackRF One Portapack"}
+      </h1>
+      <p
+        class="mb-10 max-w-2xl text-lg text-gray-200 drop-shadow-md md:text-xl"
+      >
+        {
+          product?.description ||
+            "Software Defined Radio peripheral capable of transmission or reception of radio signals from 1 MHz to 6 GHz."
+        }
+      </p>
+      <a
+        href={`/product/${productHandle}`}
+        class="inline-block rounded-xl bg-white px-10 py-4 font-bold text-black shadow-2xl transition-transform hover:scale-105 hover:bg-gray-100"
+      >
+        Comprar Ahora
+      </a>
     </div>
   </div>
 </section>

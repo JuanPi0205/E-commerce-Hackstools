@@ -1,4 +1,5 @@
 // src/utils/wishlist.ts
+import { $isAuthenticated } from '../stores/auth';
 
 export interface WishlistItem {
   id: string;
@@ -23,12 +24,13 @@ function safeParse(json: string | null): WishlistItem[] {
 
 function readWishlist(): WishlistItem[] {
   if (typeof window === "undefined") return [];
-  return safeParse(window.sessionStorage.getItem(STORAGE_KEY));
+  // Usamos localStorage para que persista
+  return safeParse(window.localStorage.getItem(STORAGE_KEY));
 }
 
 function writeWishlist(list: WishlistItem[]) {
   if (typeof window === "undefined") return;
-  window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   window.dispatchEvent(
     new CustomEvent<WishlistItem[]>("wishlist:updated", { detail: list })
   );
@@ -46,22 +48,62 @@ export function isInWishlist(id: string): boolean {
   return readWishlist().some((item) => item.id === id);
 }
 
-export function toggleWishlist(product: WishlistItem): boolean {
+export async function toggleWishlist(product: WishlistItem): Promise<boolean> {
+  // 1. Validar sesión
+  if (!$isAuthenticated.get()) {
+    // Redirigimos si intenta agregar sin iniciar sesión
+    window.location.href = '/auth/login';
+    return false;
+  }
+
+  // 2. UI Optimista: Guardar en localStorage para respuesta instantánea
   const list = readWishlist();
   const idx = list.findIndex((item) => item.id === product.id);
+  let isAdded = false;
+
   if (idx >= 0) {
     list.splice(idx, 1);
-    writeWishlist(list);
-    return false; // removed
   } else {
     list.push(product);
-    writeWishlist(list);
-    return true; // added
+    isAdded = true;
   }
+  
+  writeWishlist(list);
+
+  // 3. Sincronizar en background con Shopify Admin API (Metafield)
+  try {
+    const res = await fetch('/api/wishlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: product.id })
+    });
+    
+    if (!res.ok) {
+      console.error('No se pudo guardar el favorito en Shopify');
+    }
+  } catch (error) {
+    console.error('Error de red al guardar en la wishlist', error);
+  }
+
+  return isAdded;
 }
 
-export function removeFromWishlist(id: string): WishlistItem[] {
+export async function removeFromWishlist(id: string): Promise<WishlistItem[]> {
   const list = readWishlist().filter((item) => item.id !== id);
   writeWishlist(list);
+  
+  // Sincronizar eliminación en background
+  if ($isAuthenticated.get()) {
+    try {
+      await fetch('/api/wishlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: id })
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  
   return list;
 }

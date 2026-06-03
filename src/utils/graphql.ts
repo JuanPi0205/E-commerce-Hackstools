@@ -8,6 +8,14 @@ fragment cartFragment on Cart {
       amount
       currencyCode
     }
+    totalTaxAmount {
+      amount
+      currencyCode
+    }
+    totalAmount {
+      amount
+      currencyCode
+    }
   }
   lines(first: 100) {
     nodes {
@@ -54,6 +62,30 @@ fragment productFragment on Product {
   title
   handle
   description
+  descriptionHtml
+  media(first: 10) {
+    nodes {
+      mediaContentType
+      previewImage {
+        url
+        width
+        height
+        altText
+      }
+      ... on MediaImage {
+        image {
+          url
+        }
+      }
+      ... on Video {
+        sources {
+          url
+          format
+          mimeType
+        }
+      }
+    }
+  }
   images (first: 10) {
     nodes {
       url
@@ -68,7 +100,14 @@ fragment productFragment on Product {
       title
       availableForSale
       quantityAvailable
+      image {
+        url
+      }
       price {
+        amount
+        currencyCode
+      }
+      compareAtPrice {
         amount
         currencyCode
       }
@@ -94,6 +133,17 @@ query ($first: Int!, $after: String) {
         node {
           ...productFragment
         }
+      }
+    }
+  }
+  ${PRODUCT_FRAGMENT}
+`;
+
+export const ProductsByIdsQuery = `#graphql
+  query getProductsByIds($ids: [ID!]!) {
+    nodes(ids: $ids) {
+      ... on Product {
+        ...productFragment
       }
     }
   }
@@ -185,4 +235,51 @@ export const UpdateCartLinesMutation = `#graphql
     }
   }
   ${CART_FRAGMENT}
+`;
+
+export const COLLECTIONS_QUERY = `#graphql
+  query getCollections($first: Int!) {
+    collections(first: $first) {
+      edges {
+        node {
+          id
+          title
+          handle
+          image {
+            url
+            altText
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const PRODUCTS_QUERY = `#graphql
+  query getProducts($first: Int!, $after: String, $sortKey: ProductSortKeys, $reverse: Boolean) {
+    products(first: $first, after: $after, sortKey: $sortKey, reverse: $reverse) {
+      edges {
+        node {
+          ...productFragment
+        }
+      }
+    }
+  }
+  ${PRODUCT_FRAGMENT}
+`;
+
+export const COLLECTION_QUERY = `#graphql
+  query getCollectionProducts($handle: String!, $first: Int!, $sortKey: ProductCollectionSortKeys, $reverse: Boolean) {
+    collection(handle: $handle) {
+      title
+      products(first: $first, sortKey: $sortKey, reverse: $reverse) {
+        edges {
+          node {
+            ...productFragment
+          }
+        }
+      }
+    }
+  }
+  ${PRODUCT_FRAGMENT}
 `;

@@ -21,7 +21,7 @@ const emptyCart: z.infer<typeof CartResult> = {
   checkoutUrl: "",
   totalQuantity: 0,
   lines: { nodes: [] },
-  cost: { subtotalAmount: { amount: "0.0", currencyCode: "USD" } },
+  cost: { subtotalAmount: { amount: "0.0", currencyCode: import.meta.env.PUBLIC_STORE_CURRENCY || "USD" } },
 };
 
 // Cart store with persistent state (local storage) and initial value
@@ -95,6 +95,20 @@ export async function addCartItem({ variantId, quantity }: { variantId: string; 
           lines: cartData.lines,
         });
         isCartDrawerOpen.set(true);
+      } else {
+        // Fallback: If addCartLines fails (e.g., cart expired), create a new one
+        console.warn("Existing cart is invalid or expired, creating a new one.");
+        const newCartData = await createCart(variantId, quantity);
+        if (newCartData) {
+          cart.set({
+            id: newCartData.id,
+            cost: newCartData.cost,
+            checkoutUrl: newCartData.checkoutUrl,
+            totalQuantity: newCartData.totalQuantity,
+            lines: newCartData.lines,
+          });
+          isCartDrawerOpen.set(true);
+        }
       }
     }
   } catch (error) {

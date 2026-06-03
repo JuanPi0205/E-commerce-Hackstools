@@ -35,7 +35,7 @@ const HEART_FILLED = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height=
 
           <!-- Wishlist Button -->
           <button
-            class="btn-wishlist absolute top-4 right-4 transition-transform hover:scale-110"
+            class="btn-wishlist absolute top-4 right-4 z-10 transition-transform hover:scale-110"
             data-id={product?.id}
             data-title={product?.title}
             data-price={price}
@@ -89,16 +89,21 @@ const HEART_FILLED = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height=
   function bindEvents() {
     // Wire wishlist buttons
     document.querySelectorAll<HTMLButtonElement>('.btn-wishlist').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const id = btn.dataset.id!;
-        toggleWishlist({
-          id,
-          title: btn.dataset.title!,
-          price: parseFloat(btn.dataset.price!),
-          image: btn.dataset.image!,
-          handle: btn.dataset.handle!,
-        });
-        syncHearts();
+      btn.addEventListener('click', async () => {
+        try {
+          const id = btn.dataset.id!;
+          await toggleWishlist({
+            id,
+            title: btn.dataset.title!,
+            price: parseFloat(btn.dataset.price!),
+            image: btn.dataset.image!,
+            handle: btn.dataset.handle!,
+          });
+          syncHearts();
+        } catch (err: any) {
+          alert('Error: ' + err.message);
+          console.error(err);
+        }
       });
     });
 
@@ -157,7 +162,7 @@ const HEART_FILLED = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height=
             const image = product?.images?.nodes?.[0]?.url || product?.featuredImage?.url || "https://placehold.co/400x400";
             return `
               <div class="bg-[#F6F6F6] rounded-xl p-6 flex flex-col items-center text-center relative group">
-                <button class="btn-wishlist absolute top-4 right-4 transition-transform hover:scale-110" data-id="${product.id}" data-title="${product.title}" data-price="${price}" data-image="${image}" data-handle="${product.handle}" aria-label="Add to wishlist">
+                <button class="btn-wishlist absolute top-4 right-4 z-10 transition-transform hover:scale-110" data-id="${product.id}" data-title="${product.title}" data-price="${price}" data-image="${image}" data-handle="${product.handle}" aria-label="Add to wishlist">
                   ${HEART_EMPTY}
                 </button>
                 <a href="/product/${product.handle}" class="w-full flex flex-col items-center">

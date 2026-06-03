@@ -1,17 +1,21 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getProductByHandle, getProductRecommendations, getProducts } from '../../utils/shopify';
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import {
+  getProductByHandle,
+  getProductRecommendations,
+  getProducts,
+} from "../../utils/shopify";
 
 const { handle } = Astro.params;
 
 if (!handle) {
-  return Astro.redirect('/404');
+  return Astro.redirect("/404");
 }
 
 const product = await getProductByHandle(handle);
 
 if (!product) {
-  return Astro.redirect('/404');
+  return Astro.redirect("/404");
 }
 
 const variants = product?.variants?.nodes || [];
@@ -19,106 +23,171 @@ const firstVariant = variants[0];
 const variantId = firstVariant?.id || "";
 const price = firstVariant?.price?.amount || "0.00";
 const images = product?.images?.nodes || [];
-const fallbackImage = product?.featuredImage?.url || "https://placehold.co/400x400";
-const hasVariants = variants.length > 1 || (variants.length === 1 && variants[0].title !== "Default Title");
+const fallbackImage =
+  product?.featuredImage?.url || "https://placehold.co/400x400";
+const hasVariants =
+  variants.length > 1 ||
+  (variants.length === 1 && variants[0].title !== "Default Title");
 
 // Fetch recommendations
 let recommendations = await getProductRecommendations(product.id);
 if (!recommendations || recommendations.length === 0) {
   // Fallback to recent products
   const allProducts = await getProducts({ first: 5 });
-  recommendations = allProducts.filter((p: any) => p.id !== product.id).slice(0, 4);
+  recommendations = allProducts
+    .filter((p: any) => p.id !== product.id)
+    .slice(0, 4);
 } else {
   recommendations = recommendations.slice(0, 4);
 }
 ---
 
 <BaseLayout title={`${product.title} | HackTools`}>
-  <div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row gap-10">
+  <div class="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-12 md:flex-row">
     <!-- Product Images (Carousel) -->
     <div class="flex-1 overflow-hidden">
-      {images.length > 0 ? (
-        <div id="image-carousel" class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-hide hide-scrollbar">
-          {images.map((img) => (
-            <img 
-              data-img-url={img.url}
-              src={img.url} 
-              alt={img.altText || product.title} 
-              class="w-full shrink-0 snap-center h-auto max-h-[600px] object-contain rounded-2xl bg-[#F6F6F6] p-8" 
-            />
-          ))}
-        </div>
-      ) : (
-        <img id="single-image" src={fallbackImage} alt={product.title} class="w-full h-auto object-contain rounded-2xl bg-[#F6F6F6] p-8" />
-      )}
-      {images.length > 1 && (
-        <p class="text-sm text-gray-500 text-center mt-2 hidden md:block">Desliza para ver más imágenes</p>
-      )}
+      {
+        images.length > 0 ? (
+          <div
+            id="image-carousel"
+            class="scrollbar-hide hide-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4"
+          >
+            {images.map((img) => (
+              <img
+                data-img-url={img?.url}
+                src={img?.url}
+                alt={img?.altText || product.title}
+                class="h-auto max-h-[600px] w-full shrink-0 snap-center rounded-2xl bg-[#F6F6F6] object-contain p-8"
+              />
+            ))}
+          </div>
+        ) : (
+          <img
+            id="single-image"
+            src={fallbackImage}
+            alt={product.title}
+            class="h-auto w-full rounded-2xl bg-[#F6F6F6] object-contain p-8"
+          />
+        )
+      }
+      {
+        images.length > 1 && (
+          <p class="mt-2 hidden text-center text-sm text-gray-500 md:block">
+            Desliza para ver más imágenes
+          </p>
+        )
+      }
     </div>
 
     <!-- Product Info -->
-    <div class="flex-1 flex flex-col">
-      <h1 class="text-3xl font-bold mb-4">{product.title}</h1>
-      <p id="product-price" class="text-2xl font-semibold mb-6">${price}</p>
-      
+    <div class="flex flex-1 flex-col">
+      <h1 class="mb-4 text-3xl font-bold">{product.title}</h1>
+      <p id="product-price" class="mb-6 text-2xl font-semibold">${price}</p>
+
       <!-- Variant Selector -->
-      {hasVariants && (
-        <div class="mb-6">
-          <label for="variant-select" class="block text-sm font-medium text-gray-700 mb-2">Variante</label>
-          <select 
-            id="variant-select" 
-            class="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-black bg-white"
-          >
-            {variants.map((v) => (
-              <option 
-                value={v.id} 
-                data-price={v.price?.amount} 
-                data-image={v.image?.url || ''}
-                disabled={!v.availableForSale}
-              >
-                {v.title} {v.availableForSale ? '' : '(Agotado)'}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-      
+      {
+        hasVariants && (
+          <div class="mb-6">
+            <label
+              for="variant-select"
+              class="mb-2 block text-sm font-medium text-gray-700"
+            >
+              Variante
+            </label>
+            <select
+              id="variant-select"
+              class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 focus:ring-2 focus:ring-black focus:outline-none"
+            >
+              {variants.map((v) => (
+                <option
+                  value={v.id}
+                  data-price={v.price?.amount}
+                  data-image={v.image?.url || ""}
+                  disabled={!v.availableForSale}
+                >
+                  {v.title} {v.availableForSale ? "" : "(Agotado)"}
+                </option>
+              ))}
+            </select>
+          </div>
+        )
+      }
+
       <!-- Product Description -->
-      <div class="prose text-gray-700 mb-8" set:html={product.descriptionHtml || product.description} />
-      
+      <div
+        class="prose mb-8 text-gray-700"
+        set:html={product.descriptionHtml || product.description}
+      />
+
       <!-- Quantity and Buy -->
       <div class="mt-auto flex flex-col gap-6">
         <div class="flex items-center gap-4">
-          <div class="flex items-center border border-gray-300 rounded-lg">
-            <button id="qty-minus" class="px-4 py-3 hover:bg-gray-100 transition-colors rounded-l-lg text-lg font-medium">-</button>
-            <input id="qty-input" type="number" value="1" min="1" class="w-16 text-center focus:outline-none bg-transparent font-medium" />
-            <button id="qty-plus" class="px-4 py-3 hover:bg-gray-100 transition-colors rounded-r-lg text-lg font-medium">+</button>
+          <div class="flex items-center rounded-lg border border-gray-300">
+            <button
+              id="qty-minus"
+              class="rounded-l-lg px-4 py-3 text-lg font-medium transition-colors hover:bg-gray-100"
+              >-</button
+            >
+            <input
+              id="qty-input"
+              type="number"
+              value="1"
+              min="1"
+              class="w-16 bg-transparent text-center font-medium focus:outline-none"
+            />
+            <button
+              id="qty-plus"
+              class="rounded-r-lg px-4 py-3 text-lg font-medium transition-colors hover:bg-gray-100"
+              >+</button
+            >
           </div>
-          
-          <button 
-            id="btn-add-to-cart" 
-            class="flex-1 bg-black text-white font-medium py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+
+          <button
+            id="btn-add-to-cart"
+            class="flex-1 rounded-lg bg-black px-6 py-3 text-lg font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
             data-variant-id={variantId}
             disabled={firstVariant ? !firstVariant.availableForSale : true}
           >
-            {firstVariant?.availableForSale ? 'Agregar al carrito' : 'Agotado'}
+            {firstVariant?.availableForSale ? "Agregar al carrito" : "Agotado"}
           </button>
         </div>
 
         <!-- Trust Badges & Shipping -->
-        <div class="space-y-4 pt-4 border-t border-gray-100">
+        <div class="space-y-4 border-t border-gray-100 pt-4">
           <div class="flex items-center gap-3 text-gray-700">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 text-gray-400"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <rect x="1" y="3" width="15" height="13"></rect>
               <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
               <circle cx="5.5" cy="18.5" r="2.5"></circle>
               <circle cx="18.5" cy="18.5" r="2.5"></circle>
             </svg>
-            <span class="text-sm font-medium">Envío estimado: <span class="font-bold text-black">3 a 5 días hábiles</span></span>
+            <span class="text-sm font-medium"
+              >Envío estimado: <span class="font-bold text-black"
+                >3 a 5 días hábiles</span
+              ></span
+            >
           </div>
-          
+
           <div class="flex items-center gap-3 text-gray-700">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 text-gray-400"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
             </svg>
             <span class="text-sm font-medium">Compra segura y protegida</span>
@@ -129,31 +198,40 @@ if (!recommendations || recommendations.length === 0) {
   </div>
 
   <!-- Related Products -->
-  {recommendations.length > 0 && (
-    <div class="max-w-7xl mx-auto px-6 py-16 border-t border-gray-100 mt-10">
-      <h2 class="text-2xl font-bold mb-8 text-black">También te podría interesar</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-        {recommendations.map((rec: any) => {
-          const recPrice = rec.variants?.nodes?.[0]?.price?.amount || "0.00";
-          const recImage = rec.featuredImage?.url || rec.images?.nodes?.[0]?.url || "https://placehold.co/400x400";
-          
-          return (
-            <a href={`/product/${rec.handle}`} class="group block">
-              <div class="bg-[#F6F6F6] rounded-2xl p-6 mb-4 aspect-square flex items-center justify-center overflow-hidden">
-                <img 
-                  src={recImage} 
-                  alt={rec.title} 
-                  class="max-h-full object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105" 
-                />
-              </div>
-              <h3 class="font-medium text-black truncate mb-1">{rec.title}</h3>
-              <p class="text-gray-500">${recPrice}</p>
-            </a>
-          );
-        })}
+  {
+    recommendations.length > 0 && (
+      <div class="mx-auto mt-10 max-w-7xl border-t border-gray-100 px-6 py-16">
+        <h2 class="mb-8 text-2xl font-bold text-black">
+          También te podría interesar
+        </h2>
+        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
+          {recommendations.map((rec: any) => {
+            const recPrice = rec.variants?.nodes?.[0]?.price?.amount || "0.00";
+            const recImage =
+              rec.featuredImage?.url ||
+              rec.images?.nodes?.[0]?.url ||
+              "https://placehold.co/400x400";
+
+            return (
+              <a href={`/product/${rec.handle}`} class="group block">
+                <div class="mb-4 flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-[#F6F6F6] p-6">
+                  <img
+                    src={recImage}
+                    alt={rec.title}
+                    class="max-h-full object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105"
+                  />
+                </div>
+                <h3 class="mb-1 truncate font-medium text-black">
+                  {rec.title}
+                </h3>
+                <p class="text-gray-500">${recPrice}</p>
+              </a>
+            );
+          })}
+        </div>
       </div>
-    </div>
-  )}
+    )
+  }
 </BaseLayout>
 
 <style>
@@ -168,23 +246,29 @@ if (!recommendations || recommendations.length === 0) {
 </style>
 
 <script>
-  import { addCartItem } from '../../stores/cart';
+  import { addCartItem } from "../../stores/cart";
 
-  const btnAdd = document.getElementById('btn-add-to-cart') as HTMLButtonElement;
-  const btnMinus = document.getElementById('qty-minus') as HTMLButtonElement;
-  const btnPlus = document.getElementById('qty-plus') as HTMLButtonElement;
-  const inputQty = document.getElementById('qty-input') as HTMLInputElement;
-  const variantSelect = document.getElementById('variant-select') as HTMLSelectElement;
-  const priceDisplay = document.getElementById('product-price') as HTMLParagraphElement;
+  const btnAdd = document.getElementById(
+    "btn-add-to-cart",
+  ) as HTMLButtonElement;
+  const btnMinus = document.getElementById("qty-minus") as HTMLButtonElement;
+  const btnPlus = document.getElementById("qty-plus") as HTMLButtonElement;
+  const inputQty = document.getElementById("qty-input") as HTMLInputElement;
+  const variantSelect = document.getElementById(
+    "variant-select",
+  ) as HTMLSelectElement;
+  const priceDisplay = document.getElementById(
+    "product-price",
+  ) as HTMLParagraphElement;
 
   // Quantity handlers
   if (btnMinus && btnPlus && inputQty) {
-    btnMinus.addEventListener('click', () => {
+    btnMinus.addEventListener("click", () => {
       const current = parseInt(inputQty.value, 10) || 1;
       if (current > 1) inputQty.value = (current - 1).toString();
     });
 
-    btnPlus.addEventListener('click', () => {
+    btnPlus.addEventListener("click", () => {
       const current = parseInt(inputQty.value, 10) || 1;
       inputQty.value = (current + 1).toString();
     });
@@ -192,13 +276,13 @@ if (!recommendations || recommendations.length === 0) {
 
   // Variant selector handler
   if (variantSelect) {
-    variantSelect.addEventListener('change', (e) => {
+    variantSelect.addEventListener("change", (e) => {
       const target = e.target as HTMLSelectElement;
       const selectedOption = target.options[target.selectedIndex];
-      
+
       const newVariantId = selectedOption.value;
-      const newPrice = selectedOption.getAttribute('data-price');
-      const newImageUrl = selectedOption.getAttribute('data-image');
+      const newPrice = selectedOption.getAttribute("data-price");
+      const newImageUrl = selectedOption.getAttribute("data-image");
       const isAvailable = !selectedOption.disabled;
 
       // Update price
@@ -208,11 +292,19 @@ if (!recommendations || recommendations.length === 0) {
 
       // Update image
       if (newImageUrl) {
-        const carouselImage = document.querySelector(`img[data-img-url="${newImageUrl}"]`) as HTMLImageElement;
+        const carouselImage = document.querySelector(
+          `img[data-img-url="${newImageUrl}"]`,
+        ) as HTMLImageElement;
         if (carouselImage) {
-          carouselImage.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+          carouselImage.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "start",
+          });
         } else {
-          const singleImage = document.getElementById('single-image') as HTMLImageElement;
+          const singleImage = document.getElementById(
+            "single-image",
+          ) as HTMLImageElement;
           if (singleImage) {
             singleImage.src = newImageUrl;
           }
@@ -223,34 +315,34 @@ if (!recommendations || recommendations.length === 0) {
       if (btnAdd) {
         btnAdd.dataset.variantId = newVariantId;
         btnAdd.disabled = !isAvailable;
-        btnAdd.textContent = isAvailable ? 'Agregar al carrito' : 'Agotado';
+        btnAdd.textContent = isAvailable ? "Agregar al carrito" : "Agotado";
       }
     });
   }
 
   // Add to cart handler
   if (btnAdd) {
-    btnAdd.addEventListener('click', async () => {
+    btnAdd.addEventListener("click", async () => {
       if (btnAdd.disabled) return;
-      
+
       const variantId = btnAdd.dataset.variantId;
       const quantity = parseInt(inputQty.value, 10) || 1;
-      
+
       if (!variantId) return;
 
       const origText = btnAdd.textContent;
-      btnAdd.textContent = 'Agregando...';
+      btnAdd.textContent = "Agregando...";
       btnAdd.disabled = true;
 
       await addCartItem({ variantId, quantity });
 
-      btnAdd.textContent = '✓ Agregado!';
-      btnAdd.classList.replace('bg-black', 'bg-green-600');
-      
+      btnAdd.textContent = "✓ Agregado!";
+      btnAdd.classList.replace("bg-black", "bg-green-600");
+
       setTimeout(() => {
         btnAdd.textContent = origText;
         btnAdd.disabled = false;
-        btnAdd.classList.replace('bg-green-600', 'bg-black');
+        btnAdd.classList.replace("bg-green-600", "bg-black");
       }, 1500);
     });
   }

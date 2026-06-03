@@ -111,6 +111,18 @@ export async function getProductByHandle(handle: string) {
   return parsedData.data.product;
 }
 
+export async function getProductsByIds(ids: string[]) {
+  if (!ids || ids.length === 0) return [];
+  const { ProductsByIdsQuery } = await import('./graphql');
+  const data = await shopifyFetch<any>({
+    query: ProductsByIdsQuery,
+    variables: { ids },
+  });
+
+  // Nodes can be null if an ID doesn't exist anymore
+  return data.data?.nodes?.filter(Boolean) || [];
+}
+
 export async function getProductRecommendations(productId: string) {
   const data = await shopifyFetch({
     query: ProductRecommendationsQuery,

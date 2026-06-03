@@ -63,6 +63,29 @@ fragment productFragment on Product {
   handle
   description
   descriptionHtml
+  media(first: 10) {
+    nodes {
+      mediaContentType
+      previewImage {
+        url
+        width
+        height
+        altText
+      }
+      ... on MediaImage {
+        image {
+          url
+        }
+      }
+      ... on Video {
+        sources {
+          url
+          format
+          mimeType
+        }
+      }
+    }
+  }
   images (first: 10) {
     nodes {
       url
@@ -110,6 +133,17 @@ query ($first: Int!, $after: String) {
         node {
           ...productFragment
         }
+      }
+    }
+  }
+  ${PRODUCT_FRAGMENT}
+`;
+
+export const ProductsByIdsQuery = `#graphql
+  query getProductsByIds($ids: [ID!]!) {
+    nodes(ids: $ids) {
+      ... on Product {
+        ...productFragment
       }
     }
   }

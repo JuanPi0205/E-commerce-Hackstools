@@ -1,0 +1,170 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCustomerProfile, getCustomerOrders } from '../utils/customer';
+import { getProductsByIds } from '../utils/shopify';
+
+// 1. Leer Token de Sesión desde la cookie
+const token = Astro.cookies.get('customer_access_token')?.value;
+
+// Si no hay token, redirigir a Login
+if (!token) {
+  return Astro.redirect('/auth/login');
+}
+
+let profile: any = null;
+let orders: any[] = [];
+let favoritesList: string[] = [];
+let favoriteProducts: any[] = [];
+
+try {
+  // 2. Fetch perfil y órdenes usando las utilidades
+  profile = await getCustomerProfile(token);
+  orders = await getCustomerOrders(token, 10);
+
+  // 3. Consultar Metafield de Favoritos usando Admin API
+  const adminToken = import.meta.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
+  const domain = import.meta.env.PUBLIC_SHOPIFY_STORE_DOMAIN;
+  const apiVersion = import.meta.env.PUBLIC_SHOPIFY_API_VERSION || '2024-01';
+
+  if (adminToken && profile?.id) {
+    const ADMIN_API_URL = `https://${domain}/admin/api/${apiVersion}/graphql.json`;
+    const CUSTOMER_METAFIELD_QUERY = `#graphql
+      query getCustomerMetafield($id: ID!) {
+        customer(id: $id) {
+          metafield(namespace: "custom", key: "favoritos") {
+            value
+          }
+        }
+      }
+    `;
+
+    const getMetafieldRes = await fetch(ADMIN_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Access-Token': adminToken,
+      },
+      body: JSON.stringify({
+        query: CUSTOMER_METAFIELD_QUERY,
+        variables: { id: profile.id },
+      }),
+    });
+
+    const getMetafieldData = await getMetafieldRes.json();
+    const metafieldValueStr = getMetafieldData?.data?.customer?.metafield?.value;
+
+    // Parsear el string del metafield (array de IDs)
+    if (metafieldValueStr) {
+      try {
+        favoritesList = JSON.parse(metafieldValueStr);
+        if (favoritesList.length > 0) {
+          favoriteProducts = await getProductsByIds(favoritesList);
+        }
+      } catch (e) {
+        console.warn('No se pudo parsear el array de favoritos de Shopify');
+      }
+    }
+  }
+
+} catch (error) {
+  console.error("Error al cargar los datos del perfil:", error);
+  // Si falla (ej. token expirado), limpiar cookies y forzar re-login
+  Astro.cookies.delete('customer_access_token', { path: '/' });
+  Astro.cookies.delete('customer_refresh_token', { path: '/' });
+  Astro.cookies.delete('customer_auth', { path: '/' });
+  return Astro.redirect('/auth/login');
+}
+---
+
+<BaseLayout title="Mi Perfil | HackTools">
+  <main class="container mx-auto max-w-5xl px-4 py-12 min-h-screen">
+    <!-- Header del Perfil -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-4 border-b border-gray-100 pb-8">
+      <div>
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900">
+          Hola, {profile?.firstName || 'Cliente'}
+        </h1>
+        <p class="text-gray-500 mt-1">
+          {profile?.emailAddress?.emailAddress || ''}
+        </p>
+      </div>
+      <a 
+        href="/auth/logout" 
+        class="inline-flex items-center justify-center rounded-md bg-black px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+      >
+        Cerrar Sesión
+      </a>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+      
+      <!-- Sección de Órdenes -->
+      <section>
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-semibold text-gray-900">Mis Pedidos</h2>
+        </div>
+        
+        {orders.length === 0 ? (
+          <div class="rounded-xl border border-gray-100 bg-gray-50 p-8 text-center text-gray-500">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-3 text-gray-400"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+            <p>Aún no has realizado ningún pedido.</p>
+          </div>
+        ) : (
+          <div class="space-y-4">
+            {orders.map((order: any) => (
+              <div class="flex flex-col p-5 border border-gray-100 rounded-xl bg-white hover:border-gray-200 transition-colors shadow-sm">
+                <div class="flex justify-between items-start mb-3">
+                  <span class="font-medium text-gray-900">Orden #{order.number}</span>
+                  <span class="text-sm font-bold text-gray-900">
+                    {order.totalPrice?.currencyCode} {order.totalPrice?.amount}
+                  </span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                  <span class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${order.fulfillments?.nodes?.length > 0 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {order.fulfillments?.nodes?.length > 0 
+                      ? order.fulfillments.nodes[0].status 
+                      : 'PENDIENTE'
+                    }
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <!-- Sección de Favoritos -->
+      <section>
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-semibold text-gray-900">Mis Favoritos</h2>
+          <span class="text-sm text-gray-500">{favoritesList.length} guardados</span>
+        </div>
+
+        {favoritesList.length === 0 ? (
+          <div class="rounded-xl border border-gray-100 bg-gray-50 p-8 text-center text-gray-500">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-3 text-gray-400"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            <p>No tienes productos en tu lista de deseos.</p>
+          </div>
+        ) : (
+          <div class="grid grid-cols-2 gap-4">
+            {favoriteProducts.map((product: any) => {
+              const price = product?.variants?.nodes?.[0]?.price?.amount || "0.00";
+              const image = product?.images?.nodes?.[0]?.url || product?.featuredImage?.url || "https://placehold.co/400x400";
+              return (
+                <a href={`/product/${product.handle}`} class="flex flex-col p-4 border border-gray-100 rounded-xl bg-white hover:border-gray-200 transition-colors shadow-sm text-center group">
+                  <div class="w-full h-[120px] flex items-center justify-center mb-3">
+                    <img src={image} alt={product.title} class="max-h-full max-w-[80%] object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105" />
+                  </div>
+                  <h3 class="text-[13px] font-medium text-black mb-1 line-clamp-2 leading-snug">{product.title}</h3>
+                  <p class="text-sm font-bold text-black">\${price}</p>
+                </a>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+    </div>
+  </main>
+</BaseLayout>

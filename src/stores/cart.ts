@@ -21,7 +21,7 @@ const emptyCart: z.infer<typeof CartResult> = {
   checkoutUrl: "",
   totalQuantity: 0,
   lines: { nodes: [] },
-  cost: { subtotalAmount: { amount: "0.0", currencyCode: "USD" } },
+  cost: { subtotalAmount: { amount: "0.0", currencyCode: import.meta.env.PUBLIC_STORE_CURRENCY || "USD" } },
 };
 
 // Cart store with persistent state (local storage) and initial value

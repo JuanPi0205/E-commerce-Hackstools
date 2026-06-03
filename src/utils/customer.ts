@@ -43,7 +43,7 @@ export async function getCustomerApiEndpoint(): Promise<string> {
   }
   
   const config = await response.json();
-  customerApiEndpoint = config.customer_account_graphql_api_endpoint;
+  customerApiEndpoint = config.graphql_api || config.customer_account_graphql_api_endpoint;
   return customerApiEndpoint!;
 }
 

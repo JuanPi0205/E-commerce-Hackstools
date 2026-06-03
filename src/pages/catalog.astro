@@ -65,7 +65,7 @@ const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
 
               <!-- Wishlist Button -->
               <button
-                class="btn-wishlist absolute top-4 right-4 transition-transform hover:scale-110"
+                class="btn-wishlist absolute top-4 right-4 z-10 transition-transform hover:scale-110"
                 data-id={product?.id}
                 data-title={product?.title}
                 data-price={price}
@@ -134,15 +134,20 @@ const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
   }
 
   document.querySelectorAll<HTMLButtonElement>('.btn-wishlist').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      toggleWishlist({
-        id: btn.dataset.id!,
-        title: btn.dataset.title!,
-        price: parseFloat(btn.dataset.price!),
-        image: btn.dataset.image!,
-        handle: btn.dataset.handle!,
-      });
-      syncHearts();
+    btn.addEventListener('click', async () => {
+      try {
+        await toggleWishlist({
+          id: btn.dataset.id!,
+          title: btn.dataset.title!,
+          price: parseFloat(btn.dataset.price!),
+          image: btn.dataset.image!,
+          handle: btn.dataset.handle!,
+        });
+        syncHearts();
+      } catch (err: any) {
+        alert('Error: ' + err.message);
+        console.error(err);
+      }
     });
   });
 

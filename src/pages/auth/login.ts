@@ -4,10 +4,12 @@ import { getOpenIdConfiguration } from '../../utils/customer';
 import { generateRandomString, generateCodeChallenge } from '../../utils/pkce';
 
 const clientId = import.meta.env.PUBLIC_SHOPIFY_CUSTOMER_CLIENT_ID;
+// Traemos la URL base del .env
+const siteUrl = import.meta.env.PUBLIC_SITE_URL;
 
 export const GET: APIRoute = async ({ cookies, redirect, url }) => {
-  if (!clientId) {
-    return new Response('Error: Client ID no configurado (PUBLIC_SHOPIFY_CUSTOMER_CLIENT_ID)', { status: 500 });
+  if (!clientId || !siteUrl) {
+    return new Response('Error: Variables de entorno no configuradas', { status: 500 });
   }
 
   try {
@@ -25,7 +27,8 @@ export const GET: APIRoute = async ({ cookies, redirect, url }) => {
     cookies.set('oauth_verifier', codeVerifier, cookieOpts);
     cookies.set('oauth_nonce', nonce, cookieOpts);
 
-    const redirectUri = 'https://cool-baboons-worry.loca.lt/auth/callback';
+    // Usamos la variable de entorno aquí
+    const redirectUri = `${siteUrl}/auth/callback`;
 
     // Construir la URL de autorización
     const authUrl = new URL(config.authorization_endpoint);
@@ -37,6 +40,7 @@ export const GET: APIRoute = async ({ cookies, redirect, url }) => {
     authUrl.searchParams.append('code_challenge', codeChallenge);
     authUrl.searchParams.append('code_challenge_method', 'S256');
     authUrl.searchParams.append('nonce', nonce);
+    authUrl.searchParams.append('prompt', 'login');
 
     return redirect(authUrl.toString());
   } catch (error: any) {

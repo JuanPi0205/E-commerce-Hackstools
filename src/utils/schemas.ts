@@ -66,6 +66,18 @@ export const VariantResult = z.object({
   compareAtPrice: MoneyV2Result.nullable().optional(), // <-- Añade esta línea
 });
 
+export const MediaSourceResult = z.object({
+  url: z.string(),
+  format: z.string().optional(),
+  mimeType: z.string().optional(),
+});
+
+export const MediaResult = z.object({
+  mediaContentType: z.string(),
+  previewImage: ImageResult.nullable().optional(),
+  sources: z.array(MediaSourceResult).optional(), // For Video
+}).nullable();
+
 export const ProductResult = z
   .object({
     id: z.string(),
@@ -73,6 +85,9 @@ export const ProductResult = z
     handle: z.string(),
     description: z.string().optional(),
     descriptionHtml: z.string().optional(),
+    media: z.object({
+      nodes: z.array(MediaResult),
+    }).optional(),
     images: z.object({
       nodes: z.array(ImageResult),
     }),

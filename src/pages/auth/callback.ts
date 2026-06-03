@@ -3,6 +3,8 @@ import type { APIRoute } from 'astro';
 import { getOpenIdConfiguration } from '../../utils/customer';
 
 const clientId = import.meta.env.PUBLIC_SHOPIFY_CUSTOMER_CLIENT_ID;
+// Traemos la URL base del .env
+const siteUrl = import.meta.env.PUBLIC_SITE_URL;
 
 export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
   const code = url.searchParams.get('code');
@@ -21,7 +23,9 @@ export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
 
   try {
     const config = await getOpenIdConfiguration();
-    const redirectUri = 'https://cool-baboons-worry.loca.lt/auth/callback';
+    
+    // Usamos la variable de entorno aquí
+    const redirectUri = `${siteUrl}/auth/callback`;
 
     // Intercambiar el código por los tokens
     const tokenBody = new URLSearchParams({
@@ -47,8 +51,6 @@ export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
 
     const tokenData = await tokenResponse.json();
 
-    // tokenData contiene access_token, refresh_token, id_token, expires_in
-
     // 1. Guardar tokens de forma segura
     cookies.set('customer_access_token', tokenData.access_token, {
       httpOnly: true,
@@ -66,10 +68,10 @@ export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
       });
     }
 
-    // 2. Cookie pública para Nanostores (el cliente solo sabe que está logueado, sin datos sensibles)
+    // 2. Cookie pública para Nanostores 
     cookies.set('customer_auth', '1', {
-      httpOnly: false, // Permitimos a JS leer esta cookie para el estado reactivo global
-      secure: import.meta.env.PROD, // Seguro solo en producción
+      httpOnly: false, 
+      secure: import.meta.env.PROD, 
       path: '/',
       maxAge: tokenData.expires_in || 3600
     });

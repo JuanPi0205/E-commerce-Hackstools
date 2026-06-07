@@ -3,23 +3,40 @@
 import { getProducts } from "../../../utils/shopify";
 
 // Traemos productos reales de Shopify
-// Pedimos un lote de 20 para asegurarnos de encontrar algunos con descuento
+// Pedimos un lote de 100 para asegurarnos de encontrar todos los que tienen descuento
 const allProducts = await getProducts({ first: 100 });
 
-// 3. Filtramos SOLO los que tienen descuento y limitamos a 4 para la cuadrícula
-const discountedProducts = allProducts
-  .filter((product) => {
-    const price = product?.variants?.nodes?.[0]?.price?.amount;
-    const compareAtPrice =
-      product?.variants?.nodes?.[0]?.compareAtPrice?.amount;
+// Filtramos SOLO los productos que tienen descuento (compareAtPrice > price)
+const allDiscounted = allProducts.filter((product) => {
+  const price = product?.variants?.nodes?.[0]?.price?.amount;
+  const compareAtPrice = product?.variants?.nodes?.[0]?.compareAtPrice?.amount;
+  return (
+    compareAtPrice && price && parseFloat(compareAtPrice) > parseFloat(price)
+  );
+});
 
-    // Al agregar "&& price", TypeScript sabe con certeza que la variable no es undefined
-    // antes de dejarla pasar al parseFloat()
-    return (
-      compareAtPrice && price && parseFloat(compareAtPrice) > parseFloat(price)
-    );
-  })
-  .slice(0, 4);
+// Promedio del % de descuento entre TODOS los productos en descuento (para el título).
+const averageDiscount =
+  allDiscounted.length > 0
+    ? Math.round(
+        allDiscounted.reduce((sum, product) => {
+          const price = parseFloat(
+            product?.variants?.nodes?.[0]?.price?.amount || "0",
+          );
+          const compareAtPrice = parseFloat(
+            product?.variants?.nodes?.[0]?.compareAtPrice?.amount || "0",
+          );
+          const pct =
+            compareAtPrice > 0
+              ? ((compareAtPrice - price) / compareAtPrice) * 100
+              : 0;
+          return sum + pct;
+        }, 0) / allDiscounted.length,
+      )
+    : 0;
+
+// Solo mostramos hasta 4 en la cuadrícula
+const discountedProducts = allDiscounted.slice(0, 4);
 
 // Iconos de Wishlist
 const HEART_EMPTY = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#CFCFCF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
@@ -28,7 +45,9 @@ const HEART_EMPTY = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="
 <section class="py-16">
   <div class="container mx-auto max-w-7xl px-4">
     <div class="mb-8 flex items-end justify-between">
-      <h2 class="text-2xl font-semibold text-black">Discounts up to -50%</h2>
+      <h2 class="text-2xl font-semibold text-black">
+        {averageDiscount > 0 ? `Discounts up to -${averageDiscount}%` : "Discounts"}
+      </h2>
       {
         discountedProducts.length > 0 && (
           <a

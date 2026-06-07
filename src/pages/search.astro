@@ -1,0 +1,134 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { searchProducts } from '../utils/search';
+
+const q = (Astro.url.searchParams.get('q') || '').trim();
+const products = q ? await searchProducts(q, 50) : [];
+---
+
+<BaseLayout title={q ? `Resultados: ${q} | HackTools` : 'Buscar | HackTools'}>
+  <div class="w-full max-w-7xl mx-auto px-6 py-12 min-h-[60vh]">
+
+    <!-- Encabezado -->
+    <div class="mb-10 border-b border-gray-100 pb-6">
+      <h1 class="text-3xl font-bold tracking-tight text-black">
+        {q ? `Resultados para "${q}"` : 'Buscar productos'}
+      </h1>
+      {q && (
+        <p class="mt-1 text-sm text-[#888]">
+          {products.length} {products.length === 1 ? 'resultado' : 'resultados'}
+        </p>
+      )}
+    </div>
+
+    {!q ? (
+      <div class="rounded-2xl border border-gray-100 bg-[#FAFAFA] p-16 text-center">
+        <p class="text-gray-500">Escribe algo en el buscador para encontrar productos.</p>
+      </div>
+    ) : products.length === 0 ? (
+      <div class="rounded-2xl border border-gray-100 bg-[#FAFAFA] p-16 text-center">
+        <p class="text-gray-500">No encontramos productos para "{q}".</p>
+        <a href="/catalog" class="mt-4 inline-block rounded-lg bg-black px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800">
+          Ver todo el catálogo
+        </a>
+      </div>
+    ) : (
+      <div id="product-grid" class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        {products.map((product: any) => {
+          const variantId = product?.variants?.nodes?.[0]?.id || "";
+          const price = product?.variants?.nodes?.[0]?.price?.amount || "0.00";
+          const image = product?.images?.nodes?.[0]?.url || product?.featuredImage?.url || "https://placehold.co/400x400";
+
+          return (
+            <div class="bg-[#F6F6F6] rounded-2xl p-5 flex flex-col items-center text-center relative group">
+              <button
+                class="btn-wishlist absolute top-4 right-4 z-10 transition-transform hover:scale-110"
+                data-id={product?.id}
+                data-title={product?.title}
+                data-price={price}
+                data-image={image}
+                data-handle={product?.handle}
+                aria-label="Add to wishlist"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CFCFCF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              </button>
+
+              <a href={`/product/${product?.handle}`} class="w-full flex flex-col items-center">
+                <div class="w-full h-[160px] flex items-center justify-center mb-4 mt-2">
+                  <img src={image} alt={product?.title} class="max-h-full max-w-[75%] object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105" />
+                </div>
+                <h3 class="text-[13px] font-medium text-black mb-2 line-clamp-2 leading-snug min-h-[36px] px-1 hover:underline">{product?.title}</h3>
+              </a>
+              <p class="text-lg font-bold text-black mb-4">${price}</p>
+
+              <button
+                class="btn-add-to-cart w-full bg-black text-white font-medium py-2.5 rounded-lg hover:bg-gray-800 transition-colors mt-auto text-sm"
+                data-variant-id={variantId}
+              >
+                Buy Now
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<script>
+  import { addCartItem } from '../stores/cart';
+  import { toggleWishlist, isInWishlist } from '../utils/wishlist';
+
+  const HEART_EMPTY = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#CFCFCF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
+  const HEART_FILLED = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
+
+  function syncHearts() {
+    document.querySelectorAll<HTMLButtonElement>('.btn-wishlist').forEach((btn) => {
+      btn.innerHTML = isInWishlist(btn.dataset.id!) ? HEART_FILLED : HEART_EMPTY;
+    });
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('.btn-wishlist').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await toggleWishlist({
+          id: btn.dataset.id!,
+          title: btn.dataset.title!,
+          price: parseFloat(btn.dataset.price!),
+          image: btn.dataset.image!,
+          handle: btn.dataset.handle!,
+        });
+        syncHearts();
+      } catch (err: any) {
+        alert('Error: ' + err.message);
+        console.error(err);
+      }
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.btn-add-to-cart').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const variantId = btn.dataset.variantId!;
+      if (!variantId) return;
+
+      const orig = btn.textContent;
+      btn.textContent = 'Adding...';
+      btn.disabled = true;
+
+      await addCartItem({ variantId, quantity: 1 });
+
+      btn.textContent = '✓ Added!';
+      btn.classList.replace('bg-black', 'bg-green-600');
+      btn.classList.remove('hover:bg-gray-800');
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.disabled = false;
+        btn.classList.replace('bg-green-600', 'bg-black');
+        btn.classList.add('hover:bg-gray-800');
+      }, 1200);
+    });
+  });
+
+  window.addEventListener('wishlist:updated', syncHearts);
+  syncHearts();
+</script>

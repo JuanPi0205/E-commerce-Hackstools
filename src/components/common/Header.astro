@@ -27,6 +27,7 @@ const isAuthenticated = Boolean(
         class="hidden max-w-sm flex-1 items-center rounded-lg bg-[#F5F5F5] px-4 py-2 md:flex"
       >
         <svg
+          id="header-search-icon"
           xmlns="http://www.w3.org/2000/svg"
           width="20"
           height="20"
@@ -36,7 +37,7 @@ const isAuthenticated = Boolean(
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
-          class="mr-2"
+          class="mr-2 cursor-pointer"
           ><circle cx="11" cy="11" r="8"></circle><line
             x1="21"
             y1="21"
@@ -44,7 +45,8 @@ const isAuthenticated = Boolean(
             y2="16.65"></line></svg
         >
         <input
-          type="text"
+          id="header-search"
+          type="search"
           placeholder="Search"
           class="w-full border-none bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none"
         />
@@ -177,6 +179,24 @@ const isAuthenticated = Boolean(
 
   // La visibilidad de login/logout/perfil se decide en el servidor (SSR) según las
   // cookies httpOnly reales — ver el frontmatter de este componente. Aquí no se toca.
+
+  // ===== Buscador =====
+  const searchInput = document.getElementById("header-search") as HTMLInputElement | null;
+  const searchIcon = document.getElementById("header-search-icon");
+
+  function runSearch() {
+    const term = searchInput?.value.trim();
+    if (!term) return;
+    window.location.href = `/search?q=${encodeURIComponent(term)}`;
+  }
+
+  searchInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      runSearch();
+    }
+  });
+  searchIcon?.addEventListener("click", runSearch);
 
   // Al cerrar sesión, vaciar el carrito y los favoritos locales antes de navegar.
   // Cubre tanto el ícono del Header como el botón "Cerrar Sesión" de /profile.

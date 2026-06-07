@@ -23,9 +23,11 @@ export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
 
   try {
     const config = await getOpenIdConfiguration();
-    
-    // Usamos la variable de entorno aquí
-    const redirectUri = `${siteUrl}/auth/callback`;
+
+    // Normalizamos el origen para que coincida EXACTAMENTE con lo registrado en Shopify.
+    // Debe ser idéntico al redirect_uri usado en /auth/login.
+    const siteOrigin = new URL(siteUrl).origin;
+    const redirectUri = `${siteOrigin}/auth/callback`;
 
     // Intercambiar el código por los tokens
     const tokenBody = new URLSearchParams({
@@ -40,6 +42,10 @@ export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        // CLAVE: Shopify exige el header Origin para clientes "Public" (app web).
+        // Debe coincidir con uno de los "JavaScript origins" registrados en el panel.
+        // Sin esto, el token exchange falla con 401 invalid_token y el login no funciona.
+        'Origin': siteOrigin,
       },
       body: tokenBody.toString(),
     });

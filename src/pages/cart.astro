@@ -24,15 +24,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <div class="sticky top-8 w-full">
             <h2 class="text-2xl font-semibold text-black mb-8">Order Summary</h2>
 
-            <div class="mb-6">
-              <label class="block text-sm text-[#888] mb-2 font-medium">Discount code / Promo code</label>
-              <input type="text" placeholder="Code" class="w-full border border-gray-200 rounded-lg px-4 py-3 outline-none focus:border-black text-sm transition-colors" />
-            </div>
-
-            <div class="mb-8">
-              <label class="block text-sm text-[#888] mb-2 font-medium">Your bonus card number</label>
-              <div class="flex gap-2">
-                <input type="text" placeholder="Enter Card Number" class="w-full border border-gray-200 rounded-lg px-4 py-3 outline-none focus:border-black text-sm transition-colors flex-1" />
+            <!-- Información de envío. El costo real lo calcula Shopify en el
+                 checkout según la dirección del cliente. -->
+            <div class="mb-8 rounded-xl border border-gray-100 bg-[#FAFAFA] p-4">
+              <div class="flex items-start gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="mt-0.5 h-5 w-5 shrink-0 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                <div>
+                  <p class="text-sm font-semibold text-black">Envío</p>
+                  <p class="mt-1 text-sm text-[#888]">El costo de envío se calcula en el checkout según tu dirección de entrega.</p>
+                </div>
               </div>
             </div>
 
@@ -44,6 +44,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
               <div class="flex justify-between items-center text-sm">
                 <span class="text-[#888]">Estimated Tax</span>
                 <span id="summary-tax" class="font-semibold text-black">$0</span>
+              </div>
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-[#888]">Envío</span>
+                <span class="font-medium text-[#888]">Calculado en el checkout</span>
               </div>
             </div>
 
@@ -66,9 +70,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 <script>
   import { cart, isCartUpdating, removeCartItem, updateCartItemQuantity } from '../stores/cart';
-
-  const TAX = 50;
-  const SHIPPING = 29;
 
   function formatPrice(amount: string, currencyCode: string) {
     const num = parseFloat(amount);

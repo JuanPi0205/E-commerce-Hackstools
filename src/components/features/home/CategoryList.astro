@@ -2,8 +2,18 @@
 // src/components/features/home/CategoryList.astro
 import { getCollections } from "../../../utils/shopify";
 
-// Solicitamos las colecciones a Shopify.
-const collections = await getCollections(10);
+// Colecciones que NO deben mostrarse como categoría en el home:
+// - "bento-grid": exclusiva para los 4 cards del PromoGrid.
+// - "frontpage" / "Página de inicio": la colección por defecto de Shopify.
+const EXCLUDED_HANDLES = ["bento-grid", "frontpage"];
+const EXCLUDED_TITLES = ["página de inicio", "pagina de inicio", "home page", "frontpage"];
+
+// Solicitamos las colecciones a Shopify y filtramos las excluidas.
+const collections = (await getCollections(20)).filter((c: any) => {
+  const handle = (c.handle || "").toLowerCase();
+  const title = (c.title || "").toLowerCase();
+  return !EXCLUDED_HANDLES.includes(handle) && !EXCLUDED_TITLES.includes(title);
+});
 
 // Mapeamos los SVGs exactos que tenías, vinculándolos al 'handle' de Shopify.
 const iconMap: Record<string, string> = {

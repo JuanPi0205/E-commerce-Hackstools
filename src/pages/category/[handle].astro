@@ -4,6 +4,17 @@ import { getProductsByCollection, getCollections } from '../../utils/shopify';
 
 const { handle } = Astro.params;
 
+// Sanitiza el nombre: quita guiones/caracteres especiales y deja cada palabra
+// con mayúscula inicial separada por espacios (ej. "new-arrival" → "New Arrival").
+function toTitleCase(str: string): string {
+  return (str || "")
+    .replace(/[^a-zA-Z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ");
+}
+
 let products: any[] = [];
 let title = '';
 
@@ -12,12 +23,11 @@ if (handle) {
     // Productos de esta colección/categoría
     products = await getProductsByCollection(handle, { first: 24 });
 
-    // Título real de la colección (si existe); si no, formateamos el handle.
+    // Título real de la colección (si existe); si no, usamos el handle. En ambos
+    // casos lo sanitizamos a Title Case.
     const collections = await getCollections(50);
     const current = collections.find((c: any) => c.handle === handle);
-    title =
-      current?.title ||
-      handle.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    title = toTitleCase(current?.title || handle);
   } catch (error) {
     console.error(`Error cargando la categoría ${handle}:`, error);
   }

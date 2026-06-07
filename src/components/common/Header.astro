@@ -1,5 +1,6 @@
 ---
 // src/components/common/Header.astro
+import LoginModal from "./LoginModal.astro";
 ---
 
 <header class="border-b border-gray-100 bg-white py-4">
@@ -69,6 +70,7 @@
       <a
         id="login-link"
         href="/auth/login"
+        data-login-trigger
         aria-label="Iniciar sesión"
         class="relative text-black transition-opacity hover:opacity-70"
         style="display: none;"
@@ -138,6 +140,8 @@
   </div>
 </header>
 
+<LoginModal />
+
 <script>
   import { cart } from "../../stores/cart";
   import { getWishlistCount } from "../../utils/wishlist";
@@ -176,5 +180,69 @@
         logoutLink.style.display = "none";
       }
     }
+  });
+
+  // ===== Modal de login =====
+  const loginModal = document.getElementById("login-modal");
+  const loginModalCard = document.getElementById("login-modal-card");
+  const loginModalClose = document.getElementById("login-modal-close");
+  const loginModalForm = document.getElementById("login-modal-form") as HTMLFormElement | null;
+  const loginModalEmail = document.getElementById("login-modal-email") as HTMLInputElement | null;
+  const loginModalShop = document.getElementById("login-modal-shop");
+  const loginModalGoogle = document.getElementById("login-modal-google");
+
+  function openLoginModal() {
+    if (!loginModal) return;
+    loginModal.classList.remove("hidden");
+    loginModal.classList.add("flex");
+    loginModal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    setTimeout(() => loginModalEmail?.focus(), 50);
+  }
+
+  function closeLoginModal() {
+    if (!loginModal) return;
+    loginModal.classList.add("hidden");
+    loginModal.classList.remove("flex");
+    loginModal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+
+  // Abrir desde cualquier disparador con [data-login-trigger].
+  document.querySelectorAll("[data-login-trigger]").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.preventDefault();
+      openLoginModal();
+    });
+  });
+
+  loginModalClose?.addEventListener("click", closeLoginModal);
+
+  // Cerrar al hacer clic fuera de la tarjeta.
+  loginModal?.addEventListener("click", (e) => {
+    if (loginModalCard && !loginModalCard.contains(e.target as Node)) closeLoginModal();
+  });
+
+  // Cerrar con Escape.
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && loginModal && !loginModal.classList.contains("hidden")) {
+      closeLoginModal();
+    }
+  });
+
+  // Enviar correo → página hosted de Shopify con el correo pre-llenado (login_hint).
+  loginModalForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const email = loginModalEmail?.value.trim();
+    if (!email) return;
+    window.location.href = `/auth/login?login_hint=${encodeURIComponent(email)}`;
+  });
+
+  // Shop y Google → misma página segura de Shopify (ahí el usuario elige el proveedor).
+  loginModalShop?.addEventListener("click", () => {
+    window.location.href = "/auth/login";
+  });
+  loginModalGoogle?.addEventListener("click", () => {
+    window.location.href = "/auth/login";
   });
 </script>

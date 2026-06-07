@@ -25,6 +25,7 @@ fragment cartFragment on Cart {
         ...on ProductVariant {
           id
           title
+          quantityAvailable
           image {
             url
             altText

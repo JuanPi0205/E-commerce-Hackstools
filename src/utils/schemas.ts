@@ -24,6 +24,7 @@ export const CartItemResult = z.object({
   merchandise: z.object({
     id: z.string(),
     title: z.string(),
+    quantityAvailable: z.number().int().nullable().optional(),
     product: z.object({
       title: z.string(),
       handle: z.string(),

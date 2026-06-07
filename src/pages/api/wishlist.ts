@@ -1,6 +1,7 @@
 // src/pages/api/wishlist.ts
 import type { APIRoute } from 'astro';
 import { getCustomerProfile } from '../../utils/customer';
+import { getProductsByIds } from '../../utils/shopify';
 
 const adminToken = import.meta.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 const domain = import.meta.env.PUBLIC_SHOPIFY_STORE_DOMAIN;
@@ -36,6 +37,75 @@ const CUSTOMER_UPDATE_MUTATION = `#graphql
     }
   }
 `;
+
+// GET: devuelve los favoritos del usuario logueado (para re-hidratar el localStorage
+// al iniciar sesión). Lee el metafield de Shopify y resuelve los detalles de producto.
+export const GET: APIRoute = async ({ cookies }) => {
+  const accessToken = cookies.get('customer_access_token')?.value;
+  if (!accessToken) {
+    return new Response(JSON.stringify({ favorites: [] }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  if (!adminToken) {
+    return new Response(JSON.stringify({ error: 'Missing SHOPIFY_ADMIN_ACCESS_TOKEN' }), { status: 500 });
+  }
+
+  try {
+    const profile = await getCustomerProfile(accessToken);
+    if (!profile?.id) {
+      return new Response(JSON.stringify({ favorites: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // 1. Leer los IDs de favoritos del metafield del cliente.
+    const metaRes = await fetch(ADMIN_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Shopify-Access-Token': adminToken },
+      body: JSON.stringify({ query: CUSTOMER_METAFIELD_QUERY, variables: { id: profile.id } }),
+    });
+    const metaData = await metaRes.json();
+    const metaValue = metaData?.data?.customer?.metafield?.value;
+
+    let ids: string[] = [];
+    if (metaValue) {
+      try {
+        ids = JSON.parse(metaValue);
+      } catch {
+        ids = [];
+      }
+    }
+
+    if (!ids.length) {
+      return new Response(JSON.stringify({ favorites: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // 2. Resolver detalles de producto y mapear a la forma de WishlistItem.
+    const products = await getProductsByIds(ids);
+    const favorites = products.map((p: any) => ({
+      id: p.id,
+      title: p.title,
+      handle: p.handle,
+      price: parseFloat(p?.variants?.nodes?.[0]?.price?.amount ?? '0'),
+      image: p?.images?.nodes?.[0]?.url || p?.featuredImage?.url || '',
+    }));
+
+    return new Response(JSON.stringify({ favorites }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error: any) {
+    console.error('Wishlist GET error:', error);
+    return new Response(JSON.stringify({ favorites: [], error: error.message }), { status: 500 });
+  }
+};
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   // Verificamos si la variable de entorno está configurada

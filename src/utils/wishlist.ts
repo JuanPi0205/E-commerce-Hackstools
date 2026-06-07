@@ -46,6 +46,11 @@ export function clearWishlist(): void {
   writeWishlist([]);
 }
 
+// Reemplaza toda la lista local. Se usa para re-hidratar desde Shopify al iniciar sesión.
+export function setWishlist(items: WishlistItem[]): void {
+  writeWishlist(Array.isArray(items) ? items : []);
+}
+
 export function getWishlistCount(): number {
   return readWishlist().length;
 }

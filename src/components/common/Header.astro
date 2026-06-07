@@ -11,7 +11,7 @@ const isAuthenticated = Boolean(
 );
 ---
 
-<header class="border-b border-gray-100 bg-white py-4">
+<header class="border-b border-gray-100 bg-white py-4" data-authenticated={isAuthenticated ? "1" : "0"}>
   <div
     class="container mx-auto flex max-w-7xl items-center justify-between px-4"
   >
@@ -153,7 +153,7 @@ const isAuthenticated = Boolean(
 
 <script>
   import { cart, clearCart } from "../../stores/cart";
-  import { getWishlistCount, clearWishlist } from "../../utils/wishlist";
+  import { getWishlistCount, clearWishlist, setWishlist } from "../../utils/wishlist";
 
   function updateWishlistBadge() {
     const badge = document.getElementById("wishlist-badge");
@@ -185,8 +185,26 @@ const isAuthenticated = Boolean(
     el.addEventListener("click", () => {
       clearCart();
       clearWishlist();
+      // Permite re-hidratar en el próximo inicio de sesión (en la misma pestaña).
+      sessionStorage.removeItem("wishlist_hydrated");
     });
   });
+
+  // Re-hidratar favoritos desde Shopify al iniciar sesión: si hay sesión y aún no
+  // se hidrató en esta pestaña, traemos la lista del usuario al localStorage.
+  const isAuthed =
+    document.querySelector("header[data-authenticated]")?.getAttribute("data-authenticated") === "1";
+  if (isAuthed && !sessionStorage.getItem("wishlist_hydrated")) {
+    fetch("/api/wishlist")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data && Array.isArray(data.favorites)) {
+          setWishlist(data.favorites);
+          sessionStorage.setItem("wishlist_hydrated", "1");
+        }
+      })
+      .catch((e) => console.error("No se pudo re-hidratar la wishlist:", e));
+  }
 
   // ===== Modal de login =====
   const loginModal = document.getElementById("login-modal");

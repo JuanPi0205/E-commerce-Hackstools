@@ -147,6 +147,19 @@ query ($first: Int!, $after: String) {
   ${PRODUCT_FRAGMENT}
 `;
 
+export const SEARCH_PRODUCTS_QUERY = `#graphql
+  query searchProducts($query: String!, $first: Int!) {
+    products(first: $first, query: $query) {
+      edges {
+        node {
+          ...productFragment
+        }
+      }
+    }
+  }
+  ${PRODUCT_FRAGMENT}
+`;
+
 export const ProductsByIdsQuery = `#graphql
   query getProductsByIds($ids: [ID!]!) {
     nodes(ids: $ids) {

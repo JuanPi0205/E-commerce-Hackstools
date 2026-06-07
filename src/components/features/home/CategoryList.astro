@@ -5,8 +5,9 @@ import { getCollections } from "../../../utils/shopify";
 // Colecciones que NO deben mostrarse como categoría en el home:
 // - "bento-grid": exclusiva para los 4 cards del PromoGrid.
 // - "frontpage" / "Página de inicio": la colección por defecto de Shopify.
-const EXCLUDED_HANDLES = ["bento-grid", "frontpage"];
-const EXCLUDED_TITLES = ["página de inicio", "pagina de inicio", "home page", "frontpage"];
+// - "noticias": exclusiva para la sección de noticias (SaleBanner).
+const EXCLUDED_HANDLES = ["bento-grid", "frontpage", "noticias"];
+const EXCLUDED_TITLES = ["página de inicio", "pagina de inicio", "home page", "frontpage", "noticias"];
 
 // Solicitamos las colecciones a Shopify y filtramos las excluidas.
 const collections = (await getCollections(20)).filter((c: any) => {

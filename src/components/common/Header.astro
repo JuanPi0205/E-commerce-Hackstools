@@ -153,7 +153,7 @@ const isAuthenticated = Boolean(
 
 <script>
   import { cart, clearCart } from "../../stores/cart";
-  import { getWishlistCount } from "../../utils/wishlist";
+  import { getWishlistCount, clearWishlist } from "../../utils/wishlist";
 
   function updateWishlistBadge() {
     const badge = document.getElementById("wishlist-badge");
@@ -178,11 +178,13 @@ const isAuthenticated = Boolean(
   // La visibilidad de login/logout/perfil se decide en el servidor (SSR) según las
   // cookies httpOnly reales — ver el frontmatter de este componente. Aquí no se toca.
 
-  // Al cerrar sesión, vaciar el carrito local antes de navegar a /auth/logout.
+  // Al cerrar sesión, vaciar el carrito y los favoritos locales antes de navegar.
   // Cubre tanto el ícono del Header como el botón "Cerrar Sesión" de /profile.
+  // Los favoritos del usuario siguen guardados en Shopify (metafield).
   document.querySelectorAll('a[href="/auth/logout"]').forEach((el) => {
     el.addEventListener("click", () => {
       clearCart();
+      clearWishlist();
     });
   });
 

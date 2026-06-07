@@ -29,16 +29,53 @@ const hasVariants =
   variants.length > 1 ||
   (variants.length === 1 && variants[0].title !== "Default Title");
 
-// Fetch recommendations
-let recommendations = await getProductRecommendations(product.id);
-if (!recommendations || recommendations.length === 0) {
-  // Fallback to recent products
-  const allProducts = await getProducts({ first: 5 });
-  recommendations = allProducts
+// Stock disponible de la variante inicial. Si el inventario no se rastrea en
+// Shopify, quantityAvailable puede venir null -> no aplicamos tope ni banner.
+const firstQty =
+  typeof firstVariant?.quantityAvailable === "number"
+    ? firstVariant.quantityAvailable
+    : null;
+
+// Mensaje de "pocas unidades": solo cuando quedan entre 1 y 5.
+function stockMessage(qty: number | null): string {
+  if (qty === null || qty <= 0 || qty > 5) return "";
+  return `Solo ${qty === 1 ? "queda" : "quedan"} ${qty} ${qty === 1 ? "unidad" : "unidades"}`;
+}
+const initialStockMsg = stockMessage(firstQty);
+
+// Recomendaciones basadas en las ETIQUETAS (tags) del producto actual.
+// Buscamos otros productos que compartan al menos un tag y los ordenamos por
+// cantidad de tags en común (más relevantes primero).
+const currentTags: string[] = (product as any)?.tags ?? [];
+let recommendations: any[] = [];
+
+if (currentTags.length > 0) {
+  const tagSet = new Set(currentTags);
+  const pool = await getProducts({ first: 100 });
+  recommendations = pool
     .filter((p: any) => p.id !== product.id)
-    .slice(0, 4);
-} else {
-  recommendations = recommendations.slice(0, 4);
+    .map((p: any) => ({
+      product: p,
+      shared: ((p?.tags ?? []) as string[]).filter((t) => tagSet.has(t)).length,
+    }))
+    .filter((x) => x.shared > 0)
+    .sort((a, b) => b.shared - a.shared)
+    .slice(0, 4)
+    .map((x) => x.product);
+}
+
+// Fallback: si el producto no tiene tags o no hubo coincidencias, usamos las
+// recomendaciones de Shopify y, en última instancia, productos recientes.
+if (recommendations.length === 0) {
+  const shopifyRecs = await getProductRecommendations(product.id);
+  if (shopifyRecs && shopifyRecs.length > 0) {
+    recommendations = shopifyRecs.slice(0, 4);
+  } else {
+    const allProducts = await getProducts({ first: 5 });
+    recommendations = allProducts
+      .filter((p: any) => p.id !== product.id)
+      .slice(0, 4);
+  }
 }
 ---
 
@@ -48,18 +85,41 @@ if (!recommendations || recommendations.length === 0) {
     <div class="flex-1 overflow-hidden">
       {
         images.length > 0 ? (
-          <div
-            id="image-carousel"
-            class="scrollbar-hide hide-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4"
-          >
-            {images.map((img) => (
-              <img
-                data-img-url={img?.url}
-                src={img?.url}
-                alt={img?.altText || product.title}
-                class="h-auto max-h-[600px] w-full shrink-0 snap-center rounded-2xl bg-[#F6F6F6] object-contain p-8"
-              />
-            ))}
+          <div class="relative">
+            <div
+              id="image-carousel"
+              class="scrollbar-hide hide-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4"
+            >
+              {images.map((img) => (
+                <img
+                  data-img-url={img?.url}
+                  src={img?.url}
+                  alt={img?.altText || product.title}
+                  class="h-auto max-h-[600px] w-full shrink-0 snap-center rounded-2xl bg-[#F6F6F6] object-contain p-8"
+                />
+              ))}
+            </div>
+
+            {images.length > 1 && (
+              <>
+                <button
+                  id="img-prev"
+                  type="button"
+                  aria-label="Imagen anterior"
+                  class="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-black shadow-md backdrop-blur transition-colors hover:bg-white"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+                </button>
+                <button
+                  id="img-next"
+                  type="button"
+                  aria-label="Imagen siguiente"
+                  class="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-black shadow-md backdrop-blur transition-colors hover:bg-white"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <img
@@ -103,6 +163,7 @@ if (!recommendations || recommendations.length === 0) {
                   value={v.id}
                   data-price={v.price?.amount}
                   data-image={v.image?.url || ""}
+                  data-qty={typeof v.quantityAvailable === "number" ? v.quantityAvailable : ""}
                   disabled={!v.availableForSale}
                 >
                   {v.title} {v.availableForSale ? "" : "(Agotado)"}
@@ -121,6 +182,16 @@ if (!recommendations || recommendations.length === 0) {
 
       <!-- Quantity and Buy -->
       <div class="mt-auto flex flex-col gap-6">
+        <!-- Banner de pocas unidades (se muestra cuando quedan 5 o menos) -->
+        <div
+          id="stock-banner"
+          class="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800"
+          style={initialStockMsg ? "" : "display:none"}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          <span id="stock-banner-text">{initialStockMsg}</span>
+        </div>
+
         <div class="flex items-center gap-4">
           <div class="flex items-center rounded-lg border border-gray-300">
             <button
@@ -133,11 +204,13 @@ if (!recommendations || recommendations.length === 0) {
               type="number"
               value="1"
               min="1"
+              max={firstQty ?? undefined}
+              data-qty={firstQty ?? ""}
               class="w-16 bg-transparent text-center font-medium focus:outline-none"
             />
             <button
               id="qty-plus"
-              class="rounded-r-lg px-4 py-3 text-lg font-medium transition-colors hover:bg-gray-100"
+              class="rounded-r-lg px-4 py-3 text-lg font-medium transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
               >+</button
             >
           </div>
@@ -260,17 +333,68 @@ if (!recommendations || recommendations.length === 0) {
   const priceDisplay = document.getElementById(
     "product-price",
   ) as HTMLParagraphElement;
+  const stockBanner = document.getElementById("stock-banner") as HTMLDivElement;
+  const stockBannerText = document.getElementById(
+    "stock-banner-text",
+  ) as HTMLSpanElement;
+
+  // Stock disponible de la variante actual (null = inventario no rastreado → sin tope).
+  function parseStock(value: string | undefined | null): number | null {
+    if (value === undefined || value === null || value === "") return null;
+    const n = parseInt(value, 10);
+    return Number.isNaN(n) ? null : n;
+  }
+
+  let currentMax = parseStock(inputQty?.dataset.qty);
+
+  // Aplica el tope al input, ajusta el botón "+" y muestra/oculta el banner.
+  function updateStockUI() {
+    if (!inputQty) return;
+
+    if (currentMax !== null && currentMax >= 1) {
+      inputQty.max = String(currentMax);
+      let val = parseInt(inputQty.value, 10) || 1;
+      if (val > currentMax) val = currentMax;
+      if (val < 1) val = 1;
+      inputQty.value = String(val);
+      if (btnPlus) btnPlus.disabled = val >= currentMax;
+    } else {
+      inputQty.removeAttribute("max");
+      if (btnPlus) btnPlus.disabled = false;
+    }
+
+    if (stockBanner && stockBannerText) {
+      if (currentMax !== null && currentMax > 0 && currentMax <= 5) {
+        stockBannerText.textContent = `Solo ${currentMax === 1 ? "queda" : "quedan"} ${currentMax} ${currentMax === 1 ? "unidad" : "unidades"}`;
+        stockBanner.style.display = "";
+      } else {
+        stockBanner.style.display = "none";
+      }
+    }
+  }
 
   // Quantity handlers
   if (btnMinus && btnPlus && inputQty) {
     btnMinus.addEventListener("click", () => {
       const current = parseInt(inputQty.value, 10) || 1;
       if (current > 1) inputQty.value = (current - 1).toString();
+      updateStockUI();
     });
 
     btnPlus.addEventListener("click", () => {
       const current = parseInt(inputQty.value, 10) || 1;
+      if (currentMax !== null && current >= currentMax) return; // no superar el stock
       inputQty.value = (current + 1).toString();
+      updateStockUI();
+    });
+
+    // Validar también si el usuario escribe la cantidad a mano.
+    inputQty.addEventListener("change", () => {
+      let val = parseInt(inputQty.value, 10) || 1;
+      if (val < 1) val = 1;
+      if (currentMax !== null && val > currentMax) val = currentMax;
+      inputQty.value = String(val);
+      updateStockUI();
     });
   }
 
@@ -317,7 +441,50 @@ if (!recommendations || recommendations.length === 0) {
         btnAdd.disabled = !isAvailable;
         btnAdd.textContent = isAvailable ? "Agregar al carrito" : "Agotado";
       }
+
+      // Update stock (tope + banner) según la variante seleccionada
+      currentMax = parseStock(selectedOption.getAttribute("data-qty"));
+      inputQty.value = "1";
+      updateStockUI();
     });
+  }
+
+  // Estado inicial del stock
+  updateStockUI();
+
+  // Carrusel de imágenes: flechas ‹ › (además del deslizar)
+  const carousel = document.getElementById("image-carousel");
+  const imgPrev = document.getElementById("img-prev");
+  const imgNext = document.getElementById("img-next");
+
+  if (carousel && imgPrev && imgNext) {
+    const slides = Array.from(carousel.querySelectorAll("img"));
+
+    // Índice de la imagen más cercana a la posición de scroll actual.
+    function currentIndex(): number {
+      let idx = 0;
+      let min = Infinity;
+      slides.forEach((img, i) => {
+        const dist = Math.abs(img.offsetLeft - carousel.scrollLeft);
+        if (dist < min) {
+          min = dist;
+          idx = i;
+        }
+      });
+      return idx;
+    }
+
+    function goTo(i: number) {
+      const clamped = Math.max(0, Math.min(slides.length - 1, i));
+      slides[clamped]?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "start",
+      });
+    }
+
+    imgPrev.addEventListener("click", () => goTo(currentIndex() - 1));
+    imgNext.addEventListener("click", () => goTo(currentIndex() + 1));
   }
 
   // Add to cart handler
@@ -326,7 +493,9 @@ if (!recommendations || recommendations.length === 0) {
       if (btnAdd.disabled) return;
 
       const variantId = btnAdd.dataset.variantId;
-      const quantity = parseInt(inputQty.value, 10) || 1;
+      let quantity = parseInt(inputQty.value, 10) || 1;
+      if (quantity < 1) quantity = 1;
+      if (currentMax !== null && quantity > currentMax) quantity = currentMax;
 
       if (!variantId) return;
 

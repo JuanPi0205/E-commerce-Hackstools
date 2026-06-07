@@ -1,6 +1,14 @@
 ---
 // src/components/common/Header.astro
 import LoginModal from "./LoginModal.astro";
+
+// Fuente de verdad de la sesión: las cookies httpOnly reales (leídas en el servidor).
+// El access token expira en ~1-2h pero el refresh token dura 30 días, así que si hay
+// cualquiera de los dos consideramos al usuario autenticado (profile.astro refresca solo).
+const isAuthenticated = Boolean(
+  Astro.cookies.get("customer_access_token")?.value ||
+    Astro.cookies.get("customer_refresh_token")?.value
+);
 ---
 
 <header class="border-b border-gray-100 bg-white py-4">
@@ -63,7 +71,7 @@ import LoginModal from "./LoginModal.astro";
         href="/auth/logout"
         aria-label="Cerrar sesión"
         class="relative text-black transition-opacity hover:opacity-70"
-        style="display: none;"
+        style={isAuthenticated ? "" : "display: none;"}
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
       </a>
@@ -73,7 +81,7 @@ import LoginModal from "./LoginModal.astro";
         data-login-trigger
         aria-label="Iniciar sesión"
         class="relative text-black transition-opacity hover:opacity-70"
-        style="display: none;"
+        style={isAuthenticated ? "display: none;" : ""}
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
       </a>
@@ -82,6 +90,7 @@ import LoginModal from "./LoginModal.astro";
         href="/profile"
         aria-label="Mi Perfil"
         class="relative text-black transition-opacity hover:opacity-70"
+        style={isAuthenticated ? "" : "display: none;"}
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
       </a>
@@ -145,7 +154,6 @@ import LoginModal from "./LoginModal.astro";
 <script>
   import { cart } from "../../stores/cart";
   import { getWishlistCount } from "../../utils/wishlist";
-  import { $isAuthenticated } from "../../stores/auth";
 
   function updateWishlistBadge() {
     const badge = document.getElementById("wishlist-badge");
@@ -167,20 +175,8 @@ import LoginModal from "./LoginModal.astro";
     badge.style.display = count > 0 ? "flex" : "none";
   });
 
-  // Subscribe to auth state
-  $isAuthenticated.subscribe((isAuth) => {
-    const loginLink = document.getElementById("login-link");
-    const logoutLink = document.getElementById("logout-link");
-    if (loginLink && logoutLink) {
-      if (isAuth) {
-        loginLink.style.display = "none";
-        logoutLink.style.display = "block";
-      } else {
-        loginLink.style.display = "block";
-        logoutLink.style.display = "none";
-      }
-    }
-  });
+  // La visibilidad de login/logout/perfil se decide en el servidor (SSR) según las
+  // cookies httpOnly reales — ver el frontmatter de este componente. Aquí no se toca.
 
   // ===== Modal de login =====
   const loginModal = document.getElementById("login-modal");

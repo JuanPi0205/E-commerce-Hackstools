@@ -2,47 +2,7 @@
 // src/components/features/home/DiscountSection.astro
 import { getProducts } from "../../../utils/shopify";
 
-// 1. Mantenemos tus banners promocionales estáticos
-const categories = [
-  {
-    title: "Essential Gear",
-    description:
-      "Multi-tools, lockpicks, and field essentials for physical security auditing.",
-    image: "/images/promo_flipper.png",
-    bgColor: "bg-white",
-    textColor: "text-black",
-    buttonClass: "border-black text-black hover:bg-black hover:text-white",
-  },
-  {
-    title: "Wireless Auditing",
-    description:
-      "Routers, adapters, and SDRs for testing wireless network security.",
-    image: "/images/promo_pineapple.png",
-    bgColor: "bg-[#F9F9F9]",
-    textColor: "text-black",
-    buttonClass: "border-black text-black hover:bg-black hover:text-white",
-  },
-  {
-    title: "RF Exploitation",
-    description:
-      "Software Defined Radios and jammers for RF analysis and interception.",
-    image: "/images/promo_jammer.png",
-    bgColor: "bg-[#EDEDED]",
-    textColor: "text-black",
-    buttonClass: "border-black text-black hover:bg-black hover:text-white",
-  },
-  {
-    title: "Field Stations",
-    description:
-      "Pre-configured, hardened laptops ready for advanced mobile red teaming.",
-    image: "/images/promo_laptop.png",
-    bgColor: "bg-[#2D2D2D]",
-    textColor: "text-white",
-    buttonClass: "border-white text-white hover:bg-white hover:text-black",
-  },
-];
-
-// 2. Traemos productos reales de Shopify
+// Traemos productos reales de Shopify
 // Pedimos un lote de 20 para asegurarnos de encontrar algunos con descuento
 const allProducts = await getProducts({ first: 100 });
 
@@ -67,40 +27,6 @@ const HEART_EMPTY = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="
 
 <section class="py-16">
   <div class="container mx-auto max-w-7xl px-4">
-    <div
-      class="mb-24 grid grid-cols-1 overflow-hidden md:grid-cols-2 lg:grid-cols-4"
-    >
-      {
-        categories.map((category) => (
-          <div
-            class={`${category.bgColor} flex flex-col items-center p-8 text-center md:p-12`}
-          >
-            <div class="mb-8 flex h-[200px] w-full items-center justify-center">
-              <img
-                src={category.image}
-                alt={category.title}
-                class="max-h-full object-contain"
-              />
-            </div>
-            <h3 class={`mb-4 text-3xl font-light ${category.textColor}`}>
-              {category.title}
-            </h3>
-            <p
-              class={`mb-8 text-sm leading-relaxed opacity-70 ${category.textColor}`}
-            >
-              {category.description}
-            </p>
-            <a
-              href="/catalog"
-              class={`mt-auto inline-block rounded-md border px-10 py-3 text-sm font-medium transition-colors ${category.buttonClass}`}
-            >
-              Shop Now
-            </a>
-          </div>
-        ))
-      }
-    </div>
-
     <div class="mb-8 flex items-end justify-between">
       <h2 class="text-2xl font-semibold text-black">Discounts up to -50%</h2>
       {

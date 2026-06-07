@@ -1,21 +1,53 @@
 ---
 // src/components/features/home/SaleBanner.astro
+// Esta sección muestra una "noticia": consume la colección con handle "noticias".
+// - Título   = título de la colección
+// - Texto    = descripción de la colección
+// - Fondo    = imagen de la colección
+// - Botón    = lleva a los productos de esa colección (/category/noticias)
+import { getCollectionByHandle } from "../../../utils/collections";
+
+const NEWS_HANDLE = "noticias";
+const news = await getCollectionByHandle(NEWS_HANDLE);
+
+// Fallbacks por si la colección "noticias" aún no existe en Shopify.
+const title = news?.title || "Big Summer Sale";
+const text =
+  news?.description ||
+  "Upgrade your arsenal. Tactical gear and field auditing tools at special prices for a limited time.";
+const image = news?.image || null;
+const link = news ? `/category/${NEWS_HANDLE}` : "/catalog";
 ---
 
-<section class="relative bg-gradient-to-br from-[#2D2D2D] via-[#1A1A1A] to-[#000000] overflow-hidden py-32 mt-16">
-  
-  <!-- Floating Images -->
-  <img src="/images/promo_laptop.png" alt="" class="absolute top-[-20%] left-[-10%] w-[400px] object-contain opacity-80 mix-blend-screen transform -rotate-12 pointer-events-none" />
-  <img src="/images/hero_hackrf.png" alt="" class="absolute bottom-[-15%] left-[5%] w-[300px] object-contain opacity-90 drop-shadow-2xl transform rotate-12 pointer-events-none" />
-  
-  <img src="/images/promo_flipper.png" alt="" class="absolute top-[-10%] right-[5%] w-[250px] object-contain opacity-90 drop-shadow-2xl transform rotate-12 pointer-events-none" />
-  <img src="/images/promo_pineapple.png" alt="" class="absolute bottom-[-20%] right-[-5%] w-[400px] object-contain opacity-80 mix-blend-screen transform -rotate-12 pointer-events-none" />
+<section
+  class="relative mt-16 overflow-hidden bg-gradient-to-br from-[#2D2D2D] via-[#1A1A1A] to-[#000000] py-32"
+>
+  {
+    image && (
+      <img
+        src={image}
+        alt={title}
+        class="absolute inset-0 z-0 h-full w-full object-cover"
+      />
+    )
+  }
 
-  <!-- Content -->
-  <div class="container mx-auto px-4 max-w-7xl relative z-10 text-center">
-    <h2 class="text-5xl md:text-7xl font-light text-white mb-4 tracking-tight">Big Summer <span class="font-bold">Sale</span></h2>
-    <p class="text-[#888] text-sm md:text-base mb-10 max-w-md mx-auto">Upgrade your arsenal. Tactical gear and field auditing tools at special prices for a limited time.</p>
-    <a href="/shop" class="inline-block border border-white text-white px-12 py-3 rounded-md hover:bg-white hover:text-black transition-colors font-medium">Shop Now</a>
+  <!-- Capa oscura para legibilidad del texto sobre la imagen -->
+  <div class="absolute inset-0 z-0 bg-black/60"></div>
+
+  <!-- Contenido -->
+  <div class="relative z-10 container mx-auto max-w-7xl px-4 text-center">
+    <h2 class="mb-4 text-5xl font-bold tracking-tight text-white drop-shadow-lg md:text-7xl">
+      {title}
+    </h2>
+    <p class="mx-auto mb-10 max-w-xl text-sm text-gray-200 drop-shadow-md md:text-base line-clamp-4">
+      {text}
+    </p>
+    <a
+      href={link}
+      class="inline-block rounded-md border border-white px-12 py-3 font-medium text-white transition-colors hover:bg-white hover:text-black"
+    >
+      Shop Now
+    </a>
   </div>
-
 </section>

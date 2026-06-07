@@ -268,6 +268,20 @@ export const PRODUCTS_QUERY = `#graphql
   ${PRODUCT_FRAGMENT}
 `;
 
+export const COLLECTION_INFO_QUERY = `#graphql
+  query getCollectionInfo($handle: String!) {
+    collection(handle: $handle) {
+      handle
+      title
+      description
+      image {
+        url
+        altText
+      }
+    }
+  }
+`;
+
 export const COLLECTION_QUERY = `#graphql
   query getCollectionProducts($handle: String!, $first: Int!, $sortKey: ProductCollectionSortKeys, $reverse: Boolean) {
     collection(handle: $handle) {

@@ -40,6 +40,12 @@ export function getWishlist(): WishlistItem[] {
   return readWishlist();
 }
 
+// Vacía la lista de favoritos LOCAL (localStorage). Se usa al cerrar sesión.
+// La lista del usuario sigue guardada en Shopify (metafield) para cuando vuelva a entrar.
+export function clearWishlist(): void {
+  writeWishlist([]);
+}
+
 export function getWishlistCount(): number {
   return readWishlist().length;
 }

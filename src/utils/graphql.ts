@@ -61,6 +61,7 @@ fragment productFragment on Product {
   id
   title
   handle
+  createdAt
   description
   descriptionHtml
   media(first: 10) {

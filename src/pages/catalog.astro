@@ -44,11 +44,11 @@ const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
             Selected Products: <span class="text-black font-semibold text-lg ml-1">{products.length}</span>
           </p>
           <div class="relative">
-            <select class="appearance-none border border-gray-200 rounded-lg px-4 py-2 pr-10 text-sm focus:outline-none focus:border-black bg-white w-[180px] cursor-pointer">
-              <option>By rating</option>
-              <option>Price: Low to High</option>
-              <option>Price: High to Low</option>
-              <option>Newest Arrivals</option>
+            <select id="sort-select" class="appearance-none border border-gray-200 rounded-lg px-4 py-2 pr-10 text-sm focus:outline-none focus:border-black bg-white w-[180px] cursor-pointer">
+              <option value="default">By rating</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="newest">Newest Arrivals</option>
             </select>
           </div>
         </div>
@@ -61,7 +61,7 @@ const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
             const image = product?.images?.nodes?.[0]?.url || product?.featuredImage?.url || "https://placehold.co/400x400";
             
             return (
-            <div class="bg-[#F6F6F6] rounded-2xl p-5 flex flex-col items-center text-center relative group" data-index={index}>
+            <div class="bg-[#F6F6F6] rounded-2xl p-5 flex flex-col items-center text-center relative group" data-index={index} data-price={price} data-created={product?.createdAt || ""}>
 
               <!-- Wishlist Button -->
               <button
@@ -177,29 +177,33 @@ const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
   window.addEventListener('wishlist:updated', syncHearts);
   syncHearts();
 
-  // ── Pagination ──────────────────────────────────────────────────────────────
+  // ── Ordenar + Paginación ─────────────────────────────────────────────────────
   const ITEMS_PER_PAGE = 9;
   let currentPage = 1;
 
-  const cards = Array.from(
-    document.querySelectorAll<HTMLElement>('#product-grid [data-index]')
-  );
+  const grid = document.getElementById('product-grid');
+  const sortSelect = document.getElementById('sort-select') as HTMLSelectElement | null;
   const pageBtns = Array.from(
     document.querySelectorAll<HTMLButtonElement>('.page-btn')
   );
   const btnPrev = document.getElementById('btn-prev') as HTMLButtonElement | null;
   const btnNext = document.getElementById('btn-next') as HTMLButtonElement | null;
 
+  // Tarjetas en su ORDEN actual del DOM (cambia cuando se ordena).
+  function getCards() {
+    return Array.from(grid?.querySelectorAll<HTMLElement>('[data-index]') ?? []);
+  }
+
   function showPage(page: number) {
+    const cards = getCards();
     const start = (page - 1) * ITEMS_PER_PAGE;
     const end = start + ITEMS_PER_PAGE;
 
-    cards.forEach((card) => {
-      const idx = parseInt(card.dataset.index ?? '0', 10);
-      card.style.display = idx >= start && idx < end ? '' : 'none';
+    // Mostramos según la POSICIÓN en el DOM (respeta el orden aplicado).
+    cards.forEach((card, i) => {
+      card.style.display = i >= start && i < end ? '' : 'none';
     });
 
-    // Update page button styles
     pageBtns.forEach((btn) => {
       const p = parseInt(btn.dataset.page ?? '1', 10);
       if (p === page) {
@@ -211,24 +215,50 @@ const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
       }
     });
 
-    // Prev/Next disabled states
     if (btnPrev) btnPrev.style.opacity = page === 1 ? '0.3' : '1';
     if (btnNext) btnNext.style.opacity = page === pageBtns.length ? '0.3' : '1';
 
     currentPage = page;
-
-    // Scroll to top of grid smoothly
-    document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  // Wire page number buttons
+  // Reordena las tarjetas en el DOM según el criterio y vuelve a la página 1.
+  function applySort(criteria: string) {
+    if (!grid) return;
+    const sorted = getCards().sort((a, b) => {
+      const pa = parseFloat(a.dataset.price ?? '0');
+      const pb = parseFloat(b.dataset.price ?? '0');
+      const ca = a.dataset.created ?? '';
+      const cb = b.dataset.created ?? '';
+      switch (criteria) {
+        case 'price-asc':
+          return pa - pb;
+        case 'price-desc':
+          return pb - pa;
+        case 'newest':
+          return cb.localeCompare(ca); // fechas ISO; más nuevas primero
+        default:
+          // "By rating" → orden original (el que vino de Shopify)
+          return (
+            parseInt(a.dataset.index ?? '0', 10) -
+            parseInt(b.dataset.index ?? '0', 10)
+          );
+      }
+    });
+    sorted.forEach((card) => grid.appendChild(card)); // reordena el DOM
+    showPage(1);
+  }
+
+  sortSelect?.addEventListener('change', () => applySort(sortSelect.value));
+
   pageBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
       showPage(parseInt(btn.dataset.page!, 10));
+      document
+        .getElementById('product-grid')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
 
-  // Wire prev/next
   btnPrev?.addEventListener('click', () => {
     if (currentPage > 1) showPage(currentPage - 1);
   });
@@ -236,6 +266,6 @@ const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
     if (currentPage < pageBtns.length) showPage(currentPage + 1);
   });
 
-  // Show first page on load
-  if (cards.length > 0) showPage(1);
+  // Estado inicial
+  if (getCards().length > 0) showPage(1);
 </script>

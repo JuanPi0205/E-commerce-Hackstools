@@ -76,6 +76,7 @@ export const ProductResult = z
     id: z.string(),
     title: z.string(),
     handle: z.string(),
+    createdAt: z.string().optional(),
     description: z.string().optional(),
     descriptionHtml: z.string().optional(),
     media: z.object({

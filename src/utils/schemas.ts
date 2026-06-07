@@ -77,6 +77,14 @@ export const ProductResult = z
     title: z.string(),
     handle: z.string(),
     createdAt: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    collections: z
+      .object({
+        nodes: z.array(
+          z.object({ handle: z.string(), title: z.string() })
+        ),
+      })
+      .optional(),
     description: z.string().optional(),
     descriptionHtml: z.string().optional(),
     media: z.object({

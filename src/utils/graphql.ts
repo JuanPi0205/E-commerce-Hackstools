@@ -62,6 +62,13 @@ fragment productFragment on Product {
   title
   handle
   createdAt
+  tags
+  collections(first: 10) {
+    nodes {
+      handle
+      title
+    }
+  }
   description
   descriptionHtml
   media(first: 10) {

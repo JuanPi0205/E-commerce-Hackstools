@@ -74,6 +74,16 @@ export const GET: APIRoute = async ({ request, url, cookies, redirect }) => {
       });
     }
 
+    // Guardamos el id_token para poder cerrar sesión también en Shopify (end_session_endpoint).
+    if (tokenData.id_token) {
+      cookies.set('customer_id_token', tokenData.id_token, {
+        httpOnly: true,
+        secure: true,
+        path: '/',
+        maxAge: 60 * 60 * 24 * 30
+      });
+    }
+
     // 2. Cookie pública para Nanostores 
     cookies.set('customer_auth', '1', {
       httpOnly: false, 

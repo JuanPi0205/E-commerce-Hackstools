@@ -2,10 +2,13 @@
 import { CUSTOMER_PROFILE_QUERY, CUSTOMER_ORDERS_QUERY } from './customer-graphql';
 
 const domain = import.meta.env.PUBLIC_SHOPIFY_STORE_DOMAIN || import.meta.env.PUBLIC_SHOPIFY_SHOP || '';
+const clientId = import.meta.env.PUBLIC_SHOPIFY_CUSTOMER_CLIENT_ID;
+const siteUrl = import.meta.env.PUBLIC_SITE_URL;
 
 export interface OpenIDConfiguration {
   authorization_endpoint: string;
   token_endpoint: string;
+  end_session_endpoint?: string;
   userinfo_endpoint?: string;
 }
 
@@ -45,6 +48,42 @@ export async function getCustomerApiEndpoint(): Promise<string> {
   const config = await response.json();
   customerApiEndpoint = config.graphql_api || config.customer_account_graphql_api_endpoint;
   return customerApiEndpoint!;
+}
+
+/**
+ * 2.5. Refrescar el access token usando el refresh token.
+ * Igual que en el callback, para clientes "Public" Shopify exige el header Origin.
+ * Devuelve el nuevo tokenData ({ access_token, expires_in, refresh_token? }).
+ */
+export async function refreshAccessToken(refreshToken: string): Promise<any> {
+  if (!clientId) {
+    throw new Error('Falta PUBLIC_SHOPIFY_CUSTOMER_CLIENT_ID para refrescar el token.');
+  }
+
+  const config = await getOpenIdConfiguration();
+  const siteOrigin = siteUrl ? new URL(siteUrl).origin : undefined;
+
+  const body = new URLSearchParams({
+    grant_type: 'refresh_token',
+    client_id: clientId,
+    refresh_token: refreshToken,
+  });
+
+  const response = await fetch(config.token_endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      ...(siteOrigin ? { Origin: siteOrigin } : {}),
+    },
+    body: body.toString(),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Refresh token failed: ${err}`);
+  }
+
+  return response.json();
 }
 
 /**

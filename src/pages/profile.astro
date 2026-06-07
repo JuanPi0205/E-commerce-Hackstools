@@ -1,13 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getCustomerProfile, getCustomerOrders } from '../utils/customer';
+import { getCustomerProfile, getCustomerOrders, refreshAccessToken } from '../utils/customer';
 import { getProductsByIds } from '../utils/shopify';
 
-// 1. Leer Token de Sesión desde la cookie
-const token = Astro.cookies.get('customer_access_token')?.value;
+// 1. Leer Tokens de Sesión desde las cookies
+let token = Astro.cookies.get('customer_access_token')?.value;
+const refreshToken = Astro.cookies.get('customer_refresh_token')?.value;
 
-// Si no hay token, redirigir a Login
-if (!token) {
+// Si no hay ninguna credencial, redirigir a Login
+if (!token && !refreshToken) {
   return Astro.redirect('/auth/login');
 }
 
@@ -16,10 +17,52 @@ let orders: any[] = [];
 let favoritesList: string[] = [];
 let favoriteProducts: any[] = [];
 
+// Carga perfil + órdenes con un token dado.
+async function loadProfileData(accessToken: string) {
+  const p = await getCustomerProfile(accessToken);
+  const o = await getCustomerOrders(accessToken, 10);
+  return { p, o };
+}
+
 try {
-  // 2. Fetch perfil y órdenes usando las utilidades
-  profile = await getCustomerProfile(token);
-  orders = await getCustomerOrders(token, 10);
+  // 2. Fetch perfil y órdenes. Si el token expiró (o no hay), intentamos refrescar una vez.
+  try {
+    if (!token) throw new Error('no-access-token');
+    const data = await loadProfileData(token);
+    profile = data.p;
+    orders = data.o;
+  } catch (firstError) {
+    if (!refreshToken) throw firstError;
+
+    // Intento de refresh con el refresh_token guardado.
+    const newTokens = await refreshAccessToken(refreshToken);
+    token = newTokens.access_token;
+
+    Astro.cookies.set('customer_access_token', token!, {
+      httpOnly: true,
+      secure: true,
+      path: '/',
+      maxAge: newTokens.expires_in || 3600,
+    });
+    if (newTokens.refresh_token) {
+      Astro.cookies.set('customer_refresh_token', newTokens.refresh_token, {
+        httpOnly: true,
+        secure: true,
+        path: '/',
+        maxAge: 60 * 60 * 24 * 30,
+      });
+    }
+    Astro.cookies.set('customer_auth', '1', {
+      httpOnly: false,
+      secure: import.meta.env.PROD,
+      path: '/',
+      maxAge: newTokens.expires_in || 3600,
+    });
+
+    const data = await loadProfileData(token!);
+    profile = data.p;
+    orders = data.o;
+  }
 
   // 3. Consultar Metafield de Favoritos usando Admin API
   const adminToken = import.meta.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
@@ -68,9 +111,10 @@ try {
 
 } catch (error) {
   console.error("Error al cargar los datos del perfil:", error);
-  // Si falla (ej. token expirado), limpiar cookies y forzar re-login
+  // Si falla incluso tras el refresh (ej. refresh token revocado), limpiar y forzar re-login
   Astro.cookies.delete('customer_access_token', { path: '/' });
   Astro.cookies.delete('customer_refresh_token', { path: '/' });
+  Astro.cookies.delete('customer_id_token', { path: '/' });
   Astro.cookies.delete('customer_auth', { path: '/' });
   return Astro.redirect('/auth/login');
 }

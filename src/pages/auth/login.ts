@@ -44,6 +44,12 @@ export const GET: APIRoute = async ({ cookies, redirect, url }) => {
     authUrl.searchParams.append('nonce', nonce);
     authUrl.searchParams.append('prompt', 'login');
 
+    // Si el modal nos pasó el correo, lo pre-llenamos en la página de Shopify.
+    const loginHint = url.searchParams.get('login_hint');
+    if (loginHint) {
+      authUrl.searchParams.append('login_hint', loginHint);
+    }
+
     return redirect(authUrl.toString());
   } catch (error: any) {
     console.error('Error en el endpoint de login:', error);

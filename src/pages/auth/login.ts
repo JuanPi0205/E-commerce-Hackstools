@@ -27,8 +27,10 @@ export const GET: APIRoute = async ({ cookies, redirect, url }) => {
     cookies.set('oauth_verifier', codeVerifier, cookieOpts);
     cookies.set('oauth_nonce', nonce, cookieOpts);
 
-    // Usamos la variable de entorno aquí
-    const redirectUri = `${siteUrl}/auth/callback`;
+    // Normalizamos el origen (quita "/" final o paths) para que coincida
+    // EXACTAMENTE con el Callback URI y el JavaScript origin registrados en Shopify.
+    const siteOrigin = new URL(siteUrl).origin;
+    const redirectUri = `${siteOrigin}/auth/callback`;
 
     // Construir la URL de autorización
     const authUrl = new URL(config.authorization_endpoint);

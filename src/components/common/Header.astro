@@ -152,7 +152,7 @@ const isAuthenticated = Boolean(
 <LoginModal />
 
 <script>
-  import { cart } from "../../stores/cart";
+  import { cart, clearCart } from "../../stores/cart";
   import { getWishlistCount } from "../../utils/wishlist";
 
   function updateWishlistBadge() {
@@ -177,6 +177,14 @@ const isAuthenticated = Boolean(
 
   // La visibilidad de login/logout/perfil se decide en el servidor (SSR) según las
   // cookies httpOnly reales — ver el frontmatter de este componente. Aquí no se toca.
+
+  // Al cerrar sesión, vaciar el carrito local antes de navegar a /auth/logout.
+  // Cubre tanto el ícono del Header como el botón "Cerrar Sesión" de /profile.
+  document.querySelectorAll('a[href="/auth/logout"]').forEach((el) => {
+    el.addEventListener("click", () => {
+      clearCart();
+    });
+  });
 
   // ===== Modal de login =====
   const loginModal = document.getElementById("login-modal");

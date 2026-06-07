@@ -34,6 +34,11 @@ export const cart = persistentAtom<z.infer<typeof CartResult>>(
   }
 );
 
+// Vacía el carrito local (localStorage). Se usa, por ejemplo, al cerrar sesión.
+export function clearCart() {
+  cart.set(emptyCart);
+}
+
 // Fetch cart data if a cart exists in local storage
 export async function initCart() {
   const localCart = cart.get();
